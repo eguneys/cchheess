@@ -4,6 +4,11 @@ export function isDirection(_: number): _ is ct.Direction {
   return (_ >= 1 && _ <= 8);
 }
 
+export function isPos(_: any): _ is ct.Pos {
+  return ((_ as ct.Pos).file !== undefined &&
+    (_ as ct.Pos).rank !== undefined);
+}
+
 export type FileKey = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h'
 export type RankKey = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8'
 export type PosKey = 
@@ -41,6 +46,16 @@ export function pos(file: ct.File, rank: ct.Rank): ct.Pos {
   return {
     file,
     rank
+  }
+}
+
+export function dopKey(_: any): string {
+  if (isPos(_)) {
+    return key(_)
+  } else if (isDirection(_)) {
+    return rkey(_);
+  } else {
+    return 'dopX';
   }
 }
 

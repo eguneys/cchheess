@@ -73,54 +73,54 @@ export default function() {
     t.forEach(([d2, _p, expected]) => {
       let got = dir.ddir2(d2, _p);
 
-      console.log(v.str(got));
-      
       nac(`got ${v.str(got)} != expected ${v.str(expected)}`, deepeq(got, expected));
-
     });
 
   });
+
 
   it('routes for direction', () => {
     
     let t: Array<[dt.Displace0, ct.Direction,
                   dir.Route0<ct.Direction>]> = [
                     [0, 1, [1]],
-                    [1, 1, [1,2,3,4,5,6,7,8]],
+                    [1, 1, [1,2,3,4,5,6,7, 8]],
                     [-1, 4, [4,3,2,1]]
                   ]
 
     t.forEach(([d0, _d, expected]) => {
       let got = dir.rroute0(d0, _d);
 
-      let gotM = [...got].map(_ => p.fkey(_)),
-      expectedM = [...expected].map(_ => p.fkey(_));
-
-      nac(`got ${gotM} !== expected ${expectedM}`,
+      nac(`got ${v.str(got)} !== expected ${v.str(expected)}`,
           deepeq(got, expected));
     });
 
   });
 
-  
-  it('routes for direction', () => {
+  // [0,1] [1,6]
+  // [1]
+  // [6,7,8]
+  // [1,6] [1,7] [1,8]
+
+  // [2,1] [1,6]
+  // [1,3,5,7]
+  // [6,7,8]
+  // [1,6] [3,7] [5,8]
+  it('routes for position', () => {
     
     let t: Array<[dt.Displace1, ct.Pos,
-                  dir.Route1<ct.Pos>]> = [
-                    [[0,0], pos(1,1), [
-                      [pos(1,1), pos(1,3)]
-                    ]],
-                  ]
+                  dir.Route0<ct.Pos>]> = [
+                    [[0,0], pos(1,1), [pos(1,1)]],
+                    [[0,1], pos(1,6), [pos(1,6), pos(1,7), pos(1,8)]],
+                    [[1,1], pos(4,5), [pos(4,5), pos(5,6), pos(6,7), pos(7,8)]],
+                    [[-2,1], pos(4,5), [pos(4,5), pos(2,6)]]
+                  ];
 
     t.forEach(([d1, _p, expected]) => {
       let got = dir.rroute1(d1, _p);
 
-
-      // let gotM = [...got].map(_ => p.fkey(_)),
-      // expectedM = [...expected].map(_ => p.fkey(_));
-
-      // nac(`got ${gotM} !== expected ${expectedM}`,
-      //     deepeq(got, expected));
+      nac(`got ${v.str(got)} !== expected ${v.str(expected)}`,
+          deepeq(got, expected));
 
     });
   });

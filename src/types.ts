@@ -11,6 +11,14 @@ export interface MoveLine {
   history: History
 }
 
+export function isFenLine(_: Line): _ is FenLine {
+  return !(isMoveLine(_));
+}
+
+export function isMoveLine(_: Line): _ is MoveLine {
+  return ((_ as MoveLine).parent !== undefined);
+}
+
 export type History = Array<MoveWithPly>
 
 export interface MoveWithPly {
@@ -39,25 +47,11 @@ export interface Pos {
   rank: Rank
 }
 
-export interface Board {
-  fenMeta: FenMeta,
-  pieces: Map<Pos, Piece>
-}
-
-export interface SanMeta {
-  split: SanSplit
-  san: San
-}
-
-export interface FenMeta {
-  ranks: Array<string>,
-  turn: Color,
-  fen: Fen
-}
+export type Board = Map<Pos, Piece>
 
 export type Fen = string
 export type San = string
-export type SanSplit = string
+export type SanMeta = string
 export type Uci = string
 export type Color = 'w' | 'b'
 export type Role = 'r' | 'b' | 'n' | 'p' | 'q' | 'k'

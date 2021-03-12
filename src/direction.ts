@@ -37,6 +37,23 @@ export type Route0<A> = [A] | [A,A] | [A,A,A] | [A,A,A,A] | [A,A,A,A,A] | [A,A,A
 export type Route1<A> = Array<Route0<A>>
 export type Route2<A> = Array<Route0<A>>
 
+export function isRoute1<A>(_: any): _ is Route1<A> {
+  if (Array.isArray(_)) {
+    return _.every(isRoute0);
+  } else {
+    return false;
+  }
+}
+
+export function isRoute0<A>(_: any): _ is Route0<A> {
+  if (Array.isArray(_)) {
+    if (_.length >= 1 && _.length <= 8) {
+      return !Array.isArray(_[0]);
+    }
+  }
+  return false;
+}
+
 export function rroute0(_d0: dt.Displace0, dir: ct.Direction): Route0<ct.Direction> {
 
   let res: Route0<ct.Direction> = [dir]
@@ -57,26 +74,25 @@ export function rroute0(_d0: dt.Displace0, dir: ct.Direction): Route0<ct.Directi
   return res;
 }
 
-export function rroute1(_d1: dt.Displace1, pos: ct.Pos): Route1<ct.Pos> {
+export function rroute1(_d1: dt.Displace1, pos: ct.Pos): Route0<ct.Pos> {
 
-  let res: Route1<ct.Pos> = []
-  let ifile = pos.file,
-  irank = pos.rank;
+  let f0 = rroute0(_d1[0], pos.file),
+  f1 = rroute0(_d1[1], pos.rank);
 
-  while (true) {
+  let res: Route0<ct.Pos> = [{
+    file: f0[0],
+    rank: f1[0]
+  }];
 
-    let r0f = rroute0(_d1[0], pos.file),
-    r0r = rroute0(_d1[1], pos.rank);
+  let oneWraps = Math.min((f0.length === 1 ? f1.length: f0.length), 
+                          (f1.length === 1 ? f0.length: f1.length))
 
-    let r0: Route0<ct.Pos> = [{
-      file: r0f[0],
-      rank: r0r[0]
-    }]
-
-    res.push(r0);
-
-    if (_d1[0] === 0 && _d1[1] === 0) {
-      break;
+  for (let i = 1; i < oneWraps; i++) {
+    if (res) {
+      res.push({
+        file: f0[f0.length === 1 ? 0 : i],
+        rank: f1[f1.length === 1 ? 0 : i]
+      });
     }
   }
   return res;

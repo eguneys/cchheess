@@ -1,6 +1,6 @@
 import * as ct from './types';
 
-export function piece(pS: string): ct.Maybe<ct.Piece> {
+export function fenChar(pS: string): ct.Maybe<ct.Piece> {
   switch (pS) {
     case 'b':
     case 'r':

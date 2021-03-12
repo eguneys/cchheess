@@ -68,7 +68,7 @@ export function cry(msg: string, o?: any) {
 export function nacc(msg: string, a: any,
                      b: any): void {
   if (a !== b) {
-    cry(msg, a);
+    cry(`${msg} got`, a);
   }
 }
 
