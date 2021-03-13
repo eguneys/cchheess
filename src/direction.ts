@@ -1,6 +1,7 @@
 import * as p from './pos';
 import * as ct from './types';
 import * as dt from './dtypes';
+import * as db from './db';
 
 export function ddir0(_d0: dt.Displace0, d: ct.Direction): ct.Maybe<ct.Direction> {
   let _res = (_d0 + d);
@@ -10,15 +11,7 @@ export function ddir0(_d0: dt.Displace0, d: ct.Direction): ct.Maybe<ct.Direction
 }
 
 export function ddir1(_d1: dt.Displace1, p: ct.Pos): ct.Maybe<ct.Pos> {
-  let file = ddir0(_d1[0], p.file),
-  rank = ddir0(_d1[1], p.rank);
-
-  if (file && rank) {
-    return {
-      file,
-      rank
-    }
-  }
+  return db.poss.mget(ddir0(_d1[0], p[0]), ddir0(_d1[1], p[1]));
 }
 
 export function ddir2(_d2: dt.Displace2, p: ct.Pos): Set<ct.Pos> {
@@ -76,23 +69,18 @@ export function rroute0(_d0: dt.Displace0, dir: ct.Direction): Route0<ct.Directi
 
 export function rroute1(_d1: dt.Displace1, pos: ct.Pos): Route0<ct.Pos> {
 
-  let f0 = rroute0(_d1[0], pos.file),
-  f1 = rroute0(_d1[1], pos.rank);
+  let f0 = rroute0(_d1[0], pos[0]),
+  f1 = rroute0(_d1[1], pos[1]);
 
-  let res: Route0<ct.Pos> = [{
-    file: f0[0],
-    rank: f1[0]
-  }];
+  let res: Route0<ct.Pos> = [db.poss.pget(f0[0], f1[0])];
 
   let oneWraps = Math.min((f0.length === 1 ? f1.length: f0.length), 
                           (f1.length === 1 ? f0.length: f1.length))
 
   for (let i = 1; i < oneWraps; i++) {
     if (res) {
-      res.push({
-        file: f0[f0.length === 1 ? 0 : i],
-        rank: f1[f1.length === 1 ? 0 : i]
-      });
+      res.push(db.poss.pget(f0[f0.length === 1 ? 0 : i],
+                           f1[f1.length === 1 ? 0 : i]));
     }
   }
   return res;

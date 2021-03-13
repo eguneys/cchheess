@@ -1,12 +1,22 @@
 import * as ct from './types';
 
 export function isDirection(_: number): _ is ct.Direction {
-  return (_ >= 1 && _ <= 8);
+  return !mDirection(_);
+}
+
+export function mDirection(_: number): ct.Maybe<ct.Direction> {
+  if (_ >= 1 && _ <= 8) {
+    return _ as ct.Direction;
+  }
 }
 
 export function isPos(_: any): _ is ct.Pos {
-  return ((_ as ct.Pos).file !== undefined &&
-    (_ as ct.Pos).rank !== undefined);
+  if (Array.isArray(_)) {
+    if (_.length === 2) {
+      return _.map(isDirection).every(_ => !!_);
+    }
+  }
+  return false;
 }
 
 export type FileKey = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h'
@@ -23,7 +33,53 @@ export type PosKey =
 
 export const fileKeys: Array<FileKey> = ['a','b','c','d','e','f','g','h'];
 export const rankKeys: Array<RankKey> = ['1','2','3','4','5','6','7','8'];
-export const posKeys: Array<PosKey> = [];
+export const posKeys: Array<PosKey> = [  
+  'a1','a2','a3','a4','a5','a6','a7','a8',
+  'b1','b2','b3','b4','b5','b6','b7','b8',
+  'c1','c2','c3','c4','c5','c6','c7','c8',
+  'd1','d2','d3','d4','d5','d6','d7','d8',
+  'e1','e2','e3','e4','e5','e6','e7','e8',
+  'f1','f2','f3','f4','f5','f6','f7','f8',
+  'g1','g2','g3','g4','g5','g6','g7','g8',
+  'h1','h2','h3','h4','h5','h6','h7','h8'];
+
+export const fByKey = (_: FileKey): ct.File => {
+  return fileKeys.indexOf(_) + 1 as ct.File;
+}
+
+export const rByKey = (_: RankKey): ct.Rank => {
+  return rankKeys.indexOf(_) + 1 as ct.Rank;
+}
+
+export const posKey2rKey = (_: PosKey): RankKey => {
+  return _[1] as RankKey;
+}
+
+export const posKey2fKey = (_: PosKey): FileKey => {
+  return _[0] as FileKey;
+}
+
+export const mPosKey = (_: string): ct.Maybe<PosKey> => {
+  if (posKeys.includes(_ as PosKey)) {
+    let i = posKeys.indexOf(_ as PosKey);
+    return posKeys[i]
+  }  
+}
+
+
+export function mFileKey(_: string): ct.Maybe<FileKey> {
+  if (fileKeys.includes(_ as FileKey)) {
+    let i = fileKeys.indexOf(_ as FileKey);
+    return fileKeys[i]
+  }
+}
+
+export function mRankKey(_: string): ct.Maybe<RankKey> {
+  if (rankKeys.includes(_ as RankKey)) {
+    let i = rankKeys.indexOf(_ as RankKey);
+    return rankKeys[i]
+  }
+}
 
 export function fkey(f: ct.File): FileKey {
   return fileKeys[f - 1];
@@ -34,19 +90,7 @@ export function rkey(r: ct.Rank): RankKey {
 }
 
 export function key(p: ct.Pos): PosKey {
-  return (fkey(p.file) + rkey(p.rank)) as PosKey;
-}
-
-
-export function eq(p1: ct.Pos, p2: ct.Pos) {
-  return p1.file === p2.file && p1.rank === p2.rank;
-}
-
-export function pos(file: ct.File, rank: ct.Rank): ct.Pos {
-  return {
-    file,
-    rank
-  }
+  return (fkey(p[0]) + rkey(p[1])) as PosKey;
 }
 
 export function dopKey(_: any): string {
@@ -58,23 +102,3 @@ export function dopKey(_: any): string {
     return 'dopX';
   }
 }
-
-export const f_a: ct.File = 1
-export const f_b: ct.File = 2
-export const f_c: ct.File = 3
-export const f_d: ct.File = 4
-export const f_e: ct.File = 5
-export const f_f: ct.File = 6
-export const f_g: ct.File = 7
-export const f_h: ct.File = 8
-
-export const r_1: ct.Rank = 1
-export const r_2: ct.Rank = 2
-export const r_3: ct.Rank = 3
-export const r_4: ct.Rank = 4
-export const r_5: ct.Rank = 5
-export const r_6: ct.Rank = 6
-export const r_7: ct.Rank = 7
-export const r_8: ct.Rank = 8
-
-

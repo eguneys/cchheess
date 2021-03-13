@@ -1,17 +1,21 @@
-import { run } from './util';
+import { tMo, run } from './util';
 import makes from './makes';
 import core from './core';
-import mobil from './mobil';
+import util from './_util';
 import line from './line';
+import actor from './actor';
+import calcutes from './calcutes';
 import direction from './direction';
 
 export default function() {
 
-  // makes();
-  //direction();
-  //mobil();
-  core();
-  line();
+  tMo(makes);
+  tMo(direction);
+  tMo(util);
+  tMo(core);
+  tMo(line);
+  tMo(calcutes);
+  tMo.only(actor);
 
   run();
 

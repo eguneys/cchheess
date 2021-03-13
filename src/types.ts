@@ -19,17 +19,18 @@ export function isMoveLine(_: Line): _ is MoveLine {
   return ((_ as MoveLine).parent !== undefined);
 }
 
-export type History = Array<MoveWithPly>
-
-export interface MoveWithPly {
-  move: Move,
-  ply: Ply
-}
+export type History = Array<Move>
 
 export interface Move {
-  before: Situation,
-  after: Situation,
-  sanMeta: SanMeta
+  piece: Piece,
+  situationBefore: Situation,
+  after: Board,
+  orig: Pos,
+  dest: Pos,
+  capture?: Pos,
+  promotion?: Role,
+  castle?: string
+  enpassant: boolean
 }
 
 export interface Situation {
@@ -42,16 +43,24 @@ export interface Piece {
   role: Role,
 }
 
-export interface Pos {
-  file: File,
-  rank: Rank
-}
+export type Pos = [Direction, Direction] 
 
 export type Board = Map<Pos, Piece>
 
+export interface SanMeta {
+  role: Role,
+  file?: File,
+  rank?: Rank,
+  capture?: boolean,
+  to: Pos,
+  promotion?: Role,
+  check?: boolean,
+  mate?: boolean  
+}
+
 export type Fen = string
 export type San = string
-export type SanMeta = string
+export type San2 = string
 export type Uci = string
 export type Color = 'w' | 'b'
 export type Role = 'r' | 'b' | 'n' | 'p' | 'q' | 'k'

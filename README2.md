@@ -15,3 +15,26 @@
     ply(line: line, ply: number): situation | error
 
     
+
+
+## Sanitize
+
+    board: [Pos,Piece][] = [[[1,1], 'r'], [[1,2],['k']]]
+
+    board([posA, 'r'], [posB, 'k']) -> board
+
+    pieces: Piece[] = ['r','b','n','k','q','p']
+    poss: Pos[] = [[1,1],[1,2],...[8,8]]
+
+    pos([1, 1]) -> pos
+
+    ranks:  Direction[] = dirs
+    files: Direction[] = dirs
+    dirs: Direction[] = [1,2,3,4,5,6,7,8]
+
+    world: A[]
+    compA: Comparator<A>
+
+    sanitize<A>(a: A): A {
+
+    }

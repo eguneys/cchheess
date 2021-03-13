@@ -5,14 +5,11 @@ import * as dt from '../dtypes';
 import * as ct from '../types';
 import * as p from '../pos';
 import * as v from '../visual';
+import * as db from '../db';
 
 function pos(f: number, r: number): ct.Pos {
-  if (p.isDirection(f) && p.isDirection(r)) {
-    return p.pos(f, r)
-  }
-  let _f: ct.File = 1
-  let _r: ct.Rank = 1
-  return p.pos(_f, _r)
+  let d: ct.Direction = 1
+  return db.poss.pget(p.mDirection(f) || d, p.mDirection(r) || d);
 }
 
 export default function() {
@@ -44,7 +41,7 @@ export default function() {
       let _d = dir.ddir1(d1, _p);
 
       if (res && _d) {
-        nac(`expected ${p.key(res)} got ${p.key(_d)}`, p.eq(res, _d))
+        nacc(`expected ${p.key(res)} got ${p.key(_d)}`, res, _d)
       } else if (!res && !_d) {
       } else if (!res && _d) {
         cry(`expected undefined got ${p.key(_d)}`)

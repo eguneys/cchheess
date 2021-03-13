@@ -1,4 +1,4 @@
-import { it, jss, nac, nacc, cry } from './util';
+import { tMo, it, jss, nac, nacc, cry } from './util';
 import { Makes } from '../makes';
 
 enum ApiError {
@@ -12,7 +12,7 @@ function isApiError(_: any): _ is ApiError {
   return Object.values(ApiError).includes(_);
 }
 
-export default function() {
+export default function test() {
 
   it('makes', () => {
 
@@ -75,4 +75,4 @@ export default function() {
 
   });
 
-}
+};

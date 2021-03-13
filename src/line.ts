@@ -2,11 +2,46 @@ import * as ct from './types';
 import { Makes } from './makes';
 import * as fenApi from './fen';
 import * as sanApi from './san';
+import * as hApi from './history';
+import * as db from './db';
+
+function fenLineFirstPly(parent: ct.FenLine, sanMeta: ct.SanMeta): ct.MoveLine | LineError {
+  let _h1 = hApi.first(parent, sanMeta)
+
+  if (_h1) {
+    return db.lines.get({
+      parent, 
+      history: _h1
+    });
+  } else {
+    return LineError.CantMakeMove;
+  }
+}
+
+function moveLineNewPly({ parent, history }: ct.MoveLine, ply: number, sanMeta: ct.SanMeta): ct.MoveLine | LineError {
+
+  if (history.length < ply - 1) {
+    return LineError.NoMoveFound;
+  } else if (history.length > ply - 1) {
+    return LineError.AlreadySet;
+  } else {
+    let _h2 = hApi.add(history, sanMeta)
+    if (_h2) {
+      return db.lines.get({
+        parent,
+        history: _h2
+      });
+    } else {
+      return LineError.CantMakeMove;
+    }
+  }
+}
 
 export enum LineError {
   AlreadySet = 'Already Set',
   InvalidInput = 'Invalid Input',
-  NoMoveFound = 'No Move Found'
+  NoMoveFound = 'No Move Found',
+  CantMakeMove = 'Cant Make Move'
 }
 
 export function isLineError(_: any): _ is LineError {
@@ -16,10 +51,10 @@ export function isLineError(_: any): _ is LineError {
 function _fen(fen: string): ct.Line | LineError {
   let board = fenApi.board(fen)
   if (board) {
-    return {
+    return db.situations.get({
       board,
       turn: "w"
-    }
+    });
   } else {
     return LineError.InvalidInput
   }
@@ -43,7 +78,19 @@ function _aply(line: ct.Line, ply: number, move: string): ct.Line | LineError {
     if (ply === 0) {
       return LineError.AlreadySet
     } else {
-      return line;
+      if (ct.isFenLine(line)) {
+        if (ply !== 1) {
+          return LineError.NoMoveFound;
+        } else {
+          return fenLineFirstPly(line, _sanMeta);
+        }
+      } else {
+        if (ply >= 2) {
+          return moveLineNewPly(line, ply, _sanMeta);
+        } else {
+          return LineError.AlreadySet;
+        }
+      }
     }
   } else {
     return LineError.InvalidInput
