@@ -1,7 +1,9 @@
 import * as ct from './types';
 import * as p from './pos';
 import * as r from './role';
-import * as db from './db';
+import * as db2 from './db2';
+
+let { poss } = db2;
 
 export function str2meta(str: string): ct.Maybe<ct.SanMeta> {
   if (!isSan2(str)) {
@@ -44,7 +46,7 @@ export function san2meta(san2: ct.San2): ct.Maybe<ct.SanMeta> {
     toRKey = p.posKey2rKey(mToKey),
     toF = p.fByKey(toFKey),
     toR = p.rByKey(toRKey),
-    to: ct.Pos = [toF, toR];
+    to: ct.Pos = poss.pget(toF, toR)
 
     if (to) {
       return {

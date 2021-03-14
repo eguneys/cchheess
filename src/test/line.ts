@@ -1,4 +1,4 @@
-import { it, jss, nac, nacc, cry } from './util';
+import { it, jss, qed, nac, nacc, cry } from './util';
 import * as l from '../line';
 
 export default function() {
@@ -45,9 +45,32 @@ export default function() {
 
   });
 
-  it.only('cant make invalid moves', () => {
+  it('can make move', () => {
+
+    let res = l.fen('line3', ifen)
+
+    let apres = l.aply('line3', 1, 'e4');
+    qed('set san 1 ok', apres, undefined);
+
+    apres = l.aply('line3', 2, 'e5');
+    qed('set san 2 ok', apres, undefined);
+  });
+
+  it('cant make invalid moves', () => {
     l.fen('line1', ifen)
-    nacc('1. e6', l.aply('line1', 1, 'e6'), l.LineError.CantMakeMove);
+    qed('1. e6', l.aply('line1', 1, 'e6'), l.LineError.CantMakeMove);
+    qed('1. e4', l.aply('line1', 1, 'e4'), undefined);
+  });
+
+  it.only('plays a game', () => {
+
+    l.fen('lineg', ifen);
+
+    'e4 e5 g4 g6'.split(' ')
+      .forEach((_, i) => {
+        qed(`${i+1}. ${_}`, l.aply('lineg', i+1, _), undefined);
+      });
+
   });
     
 }

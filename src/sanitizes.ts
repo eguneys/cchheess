@@ -2,6 +2,20 @@ import { Query, isEqualAny, mapmatch } from './isequal';
 
 export enum Sanitized {}
 
+export const sanitized = <A>(szer: Sanitizes<A>, 
+                             cb: (...args: any) => A) =>
+  (...args: any) => szer.get(cb(...args));
+
+export const sanitizedU = <A>(szer: Sanitizes<A>,
+                              cb: (x: A | undefined, ...args: any) => 
+  A | undefined) =>
+  (a: A, ...args: any) => {
+    let _a = cb(a, ...args);
+    if (_a) {
+      return szer.get(_a);
+    }
+  }
+
 export class Sanitizes<A> {
   world: A[]
 

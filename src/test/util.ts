@@ -1,3 +1,5 @@
+import { deepeq } from './util2';
+
 interface Test {
   msg: string,
   fn: () => void | string | undefined,
@@ -104,7 +106,8 @@ export function jss(o: any, msg?: string): void {
 }
 
 export function cry(msg: string, o?: any) {
-  console.log(`❌ ${msg} ` + (o? o : ''));
+  let oS = JSON.stringify(o);
+  console.log(`❌ ${msg} ` + oS);
 }
 
 export function nacc(msg: string, a: any,
@@ -117,5 +120,12 @@ export function nacc(msg: string, a: any,
 export function nac(msg: string, a: any): void {
   if (!a) {
     cry(msg);
+  }
+}
+
+export function qed(msg: string, a: any,
+                    b: any): void {
+  if (!deepeq(a, b)) {
+    cry(`${msg} got`, a);
   }
 }

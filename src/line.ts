@@ -1,6 +1,6 @@
 import * as ct from './types';
 import { Makes } from './makes';
-import * as fenApi from './fen';
+import * as f from './fen';
 import * as sanApi from './san';
 import * as hApi from './history';
 import * as db from './db';
@@ -49,12 +49,9 @@ export function isLineError(_: any): _ is LineError {
 }
 
 function _fen(fen: string): ct.Line | LineError {
-  let board = fenApi.board(fen)
-  if (board) {
-    return db.situations.get({
-      board,
-      turn: "w"
-    });
+  let sit = f.situation(fen)
+  if (sit) {
+    return sit;
   } else {
     return LineError.InvalidInput
   }
@@ -64,7 +61,7 @@ function _ply(line: ct.Line, ply: number): ct.Fen | LineError {
 
   if (ply === 0) {
     if (ct.isFenLine(line)) {
-      return fenApi.fen(line);
+      return f.fen(line);
     }
   }
 
@@ -82,7 +79,8 @@ function _aply(line: ct.Line, ply: number, move: string): ct.Line | LineError {
         if (ply !== 1) {
           return LineError.NoMoveFound;
         } else {
-          return fenLineFirstPly(line, _sanMeta);
+          let res = fenLineFirstPly(line, _sanMeta);
+          return res;
         }
       } else {
         if (ply >= 2) {

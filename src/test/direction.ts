@@ -5,11 +5,11 @@ import * as dt from '../dtypes';
 import * as ct from '../types';
 import * as p from '../pos';
 import * as v from '../visual';
-import * as db from '../db';
+import * as db2 from '../db2';
 
 function pos(f: number, r: number): ct.Pos {
   let d: ct.Direction = 1
-  return db.poss.pget(p.mDirection(f) || d, p.mDirection(r) || d);
+  return db2.poss.pget(p.mDirection(f) || d, p.mDirection(r) || d);
 }
 
 export default function() {

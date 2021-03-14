@@ -1,7 +1,10 @@
 import * as ct from './types';
 
+export type DAlong = [ct.Direction, ct.Direction, ct.Direction, ct.Direction, ct.Direction, ct.Direction, ct.Direction, ct.Direction]
+export const directions: DAlong = [1,2,3,4,5,6,7,8]
+
 export function isDirection(_: number): _ is ct.Direction {
-  return !mDirection(_);
+  return !!mDirection(_);
 }
 
 export function mDirection(_: number): ct.Maybe<ct.Direction> {

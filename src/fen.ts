@@ -1,20 +1,25 @@
 import * as ct from './types';
+import * as b from './board';
 import * as p from './piece';
 import * as d from './direction';
+import * as db2 from './db2';
 import * as db from './db';
 import * as sz from './sanitizes';;
 
+let { pieces, poss } = db2;
+let { actors, boards } = db;
+
 export function fen(situation: ct.Situation): ct.Fen {
-  return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  let color = situation.turn;
+  let rest = "KQkq - 0 1";
+  return `${b.fen(situation.board)} ${color} ${rest}`;
 }
 
-function make(): Map<ct.Pos, ct.Piece> {
-  return new Map()
-}
+export const situation = sz.sanitized(db.situations, _situation);
 
-export function board(fen: string): ct.Maybe<ct.Board & sz.Sanitized> {
+function _situation(fen: string): ct.Maybe<ct.Situation> {
 
-  let pieces = make()
+  let _pieces = new Map()
 
   let [ranksS, colorS] = fen.split(' ');
 
@@ -33,16 +38,16 @@ export function board(fen: string): ct.Maybe<ct.Board & sz.Sanitized> {
   }
 
   for (let i = 0; i < ranks.length; i++) {
-    let rank = i + 1;
+    let rank = 8 - i;
     let file = 1;
     for (let j = 0; j < ranks[i].length; j++) {
       let c = ranks[i][j];
-      let piece = db.pieces.nget(c, c);
+      let piece = pieces.nget(c, c);
 
       if (piece) {
-        let pos = db.poss.nget(file, rank);
+        let pos = poss.nget(file, rank);
         if (pos && piece) {
-          pieces.set(pos, piece);
+          _pieces.set(pos, piece);
         }
         file += 1
       } else {
@@ -54,15 +59,18 @@ export function board(fen: string): ct.Maybe<ct.Board & sz.Sanitized> {
     }
   }
 
-  let board = db.boards.get(pieces);
+  let board = boards.get(_pieces);
 
-  for (let [pos, piece] of pieces.entries()) {
-    db.actors.get({pos, 
-                   piece,
-                   board});
+  for (let [pos, piece] of _pieces.entries()) {
+    actors.get({pos, 
+                piece,
+                board});
   };
   
-  return board;  
+  return {
+    board,
+    turn: colorS
+  };
 }
 
 export function space(c: string): ct.Maybe<number> {

@@ -16,7 +16,7 @@ export default function() {
     }, {a : '1', b: '*', c: '*' }));
   });
 
-  it('sanitizes numbers', () => {
+  it.only('sanitizes numbers', () => {
     let dirs = new sz.Sanitizes<number>();
     nacc('san 3 3', dirs.get(3), dirs.get(3))
     nac('san 3 4', dirs.get(3) !== dirs.get(4))
@@ -123,7 +123,7 @@ export default function() {
     };
   });
 
-  it.only("queries nested objects", () => {
+  it("queries nested objects", () => {
 
     ['a1','b1','c1','a2','a3'].forEach(_ => {
       let p = poss.get(key2pos(_));

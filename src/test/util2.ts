@@ -44,7 +44,7 @@ export function arreq(a: Array<any>, b: Array<any>): boolean {
     return false;
   }
   for (let i in a) {
-    if (!deepeq(a[i], b[i])) {
+    if (!b.some(_ => deepeq(_, a[i]))) {
       return false;
     }
   }

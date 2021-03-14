@@ -1,9 +1,11 @@
-import { it, jss, nac, nacc, cry } from './util';
+import { it, jss, nac, nacc, qed, cry } from './util';
 import { deepeq } from './util2';
 import * as f from '../fen';
 import * as ct from '../types';
 import * as s from '../san';
-import * as db from '../db';
+import * as db2 from '../db2';
+
+let { poss } = db2;
 
 export default function() {
 
@@ -15,8 +17,6 @@ export default function() {
 
 
   it('finds positions', () => {
-
-    let { poss } = db;
     
     nac('1 1', deepeq(poss.nget(1, 1), [1,1]))
     nac('1 8', deepeq(poss.nget(1, 8), [1,8]))
@@ -25,14 +25,17 @@ export default function() {
   });
 
   it('creates board', () => {
-    const board = f.board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+    const situation = f.situation('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 
-    if (!board) {
-      return '! board';
+    if (!situation) {
+      return '! situation';
     }
+    let { board } = situation;
 
     nacc('32 pieces', board.size, 32);
-    // console.log(b.piece(board, db.pos('e4')));
+    qed('w p at 2 2',
+        board.get(poss.nget(2, 2) || {} as ct.Pos),
+        { role: 'p', color: 'w' });
 
   });
 
