@@ -2,12 +2,10 @@ import * as ct from './types';
 import * as p from './pos';
 import * as pi from './piece';
 import * as r from './role';
-import * as db from './db';
-import * as db2 from './db2';
-import * as sz from './sanitizes';
 import * as u from './util';
+import { poss } from './db';
 
-export const move = sz.sanitizedU(db.boards, u.seqable(_move));
+export const move = u.seqable(_move);
 
 export function fen(board: ct.Board): string {
   let res = [];
@@ -15,7 +13,7 @@ export function fen(board: ct.Board): string {
     let rankS = '';
     let space = 0;
     for (let file of p.directions) {
-      let piece = board.get(db2.poss.pget(file, rank));
+      let piece = board.get(poss.pget(file, rank));
       if (piece) {
         if (space !== 0) {
           rankS += space;
@@ -35,22 +33,13 @@ export function fen(board: ct.Board): string {
 }
 
 function _move(board: ct.Board, pos: ct.Pos, to: ct.Pos): ct.Maybe<ct.Board> {
-  let { actors } = db;
 
   if (!board.has(to)) {
     let p = board.get(pos)
     if (p) {
       let b2 = new Map([...board])
-
       b2.delete(pos);
-      
       b2.set(to, p);
-
-      for (let [pos, piece] of b2.entries()) {
-        actors.get({pos, 
-                    piece,
-                    board: b2});
-      };
 
       return b2;
     }

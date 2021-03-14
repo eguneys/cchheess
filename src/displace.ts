@@ -40,6 +40,6 @@ function dType(piece: ct.Piece, pos: ct.Pos): dt.Displace2 {
   }
 }
 
-export function get(piece: ct.Piece, pos: ct.Pos): Set<ct.Pos> {
-  return dir.rrouteflat1(dType(piece, pos), pos);
+export function displace(piece: ct.Piece, pos: ct.Pos): dir.Route1<ct.Pos> {
+  return dir.rroute2(dType(piece, pos), pos);
 }

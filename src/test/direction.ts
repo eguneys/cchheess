@@ -1,15 +1,16 @@
 import { it, nacc, nac, cry } from './util';
 import { seteq, deepeq } from './util2';
+
 import * as dir from '../direction';
 import * as dt from '../dtypes';
 import * as ct from '../types';
 import * as p from '../pos';
 import * as v from '../visual';
-import * as db2 from '../db2';
+import { poss } from '../db';
 
 function pos(f: number, r: number): ct.Pos {
   let d: ct.Direction = 1
-  return db2.poss.pget(p.mDirection(f) || d, p.mDirection(r) || d);
+  return poss.pget(p.mDirection(f) || d, p.mDirection(r) || d);
 }
 
 export default function() {
@@ -94,15 +95,6 @@ export default function() {
 
   });
 
-  // [0,1] [1,6]
-  // [1]
-  // [6,7,8]
-  // [1,6] [1,7] [1,8]
-
-  // [2,1] [1,6]
-  // [1,3,5,7]
-  // [6,7,8]
-  // [1,6] [3,7] [5,8]
   it('routes for position', () => {
     
     let t: Array<[dt.Displace1, ct.Pos,

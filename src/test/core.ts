@@ -3,9 +3,7 @@ import { deepeq } from './util2';
 import * as f from '../fen';
 import * as ct from '../types';
 import * as s from '../san';
-import * as db2 from '../db2';
-
-let { poss } = db2;
+import { poss } from '../db';
 
 export default function() {
 

@@ -1,9 +1,7 @@
 import * as ct from './types';
 import * as p from './pos';
 import * as r from './role';
-import * as db2 from './db2';
-
-let { poss } = db2;
+import { poss } from './db';
 
 export function str2meta(str: string): ct.Maybe<ct.SanMeta> {
   if (!isSan2(str)) {

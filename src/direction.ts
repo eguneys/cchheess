@@ -1,7 +1,7 @@
 import * as p from './pos';
 import * as ct from './types';
 import * as dt from './dtypes';
-import * as db2 from './db2';
+import { poss } from './db';
 
 export function ddir0(_d0: dt.Displace0, d: ct.Direction): ct.Maybe<ct.Direction> {
   let _res = (_d0 + d);
@@ -11,7 +11,7 @@ export function ddir0(_d0: dt.Displace0, d: ct.Direction): ct.Maybe<ct.Direction
 }
 
 export function ddir1(_d1: dt.Displace1, p: ct.Pos): ct.Maybe<ct.Pos> {
-  return db2.poss.mget(ddir0(_d1[0], p[0]), ddir0(_d1[1], p[1]));
+  return poss.mget(ddir0(_d1[0], p[0]), ddir0(_d1[1], p[1]));
 }
 
 export function ddir2(_d2: dt.Displace2, p: ct.Pos): Set<ct.Pos> {
@@ -41,11 +41,13 @@ export function isRoute1<A>(_: any): _ is Route1<A> {
 export function isRoute0<A>(_: any): _ is Route0<A> {
   if (Array.isArray(_)) {
     if (_.length >= 1 && _.length <= 8) {
-      return !Array.isArray(_[0]);
+      return _.every(_ =>
+        Array.isArray(_) && _.length === 2)
     }
   }
   return false;
 }
+
 
 export function rroute0(_d0: dt.Displace0, dir: ct.Direction): Route0<ct.Direction> {
 
@@ -90,14 +92,14 @@ export function rroute1(_d1: dt.Displace1, pos: ct.Pos): Route0<ct.Pos> {
   let f0 = rroute0(_d1[0], pos[0]),
   f1 = rroute0(_d1[1], pos[1]);
 
-  let res: Route0<ct.Pos> = [db2.poss.pget(f0[0], f1[0])];
+  let res: Route0<ct.Pos> = [poss.pget(f0[0], f1[0])];
 
   let oneWraps = Math.min((_d1[0] === 0 ? f1.length: f0.length), 
                           (_d1[1] === 0 ? f0.length: f1.length))
 
   for (let i = 1; i < oneWraps; i++) {
     if (res) {
-      res.push(db2.poss.pget(f0[f0.length === 1 ? 0 : i],
+      res.push(poss.pget(f0[f0.length === 1 ? 0 : i],
                            f1[f1.length === 1 ? 0 : i]));
     }
   }

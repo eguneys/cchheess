@@ -4,13 +4,13 @@ import { it, jss, nacc, nac, qed } from './util';
 import * as p from '../pos';
 import * as ct from '../types';
 import * as dt from '../dtypes';
-import * as db2 from '../db2';
+import { poss } from '../db';
 import * as dir from '../direction';
 
 export default function () {
 
-  let a1 = db2.poss.nget(1, 1) as ct.Pos;
-  let d4 = db2.poss.nget(4, 4) as ct.Pos;
+  let a1 = poss.nget(1, 1) as ct.Pos;
+  let d4 = poss.nget(4, 4) as ct.Pos;
 
   it('gets route0', () => {
 

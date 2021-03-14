@@ -2,12 +2,9 @@ import * as ct from './types';
 import * as b from './board';
 import * as p from './piece';
 import * as d from './direction';
-import * as db2 from './db2';
-import * as db from './db';
 import * as sz from './sanitizes';;
 
-let { pieces, poss } = db2;
-let { actors, boards } = db;
+import { pieces, poss } from './db';
 
 export function fen(situation: ct.Situation): ct.Fen {
   let color = situation.turn;
@@ -15,9 +12,7 @@ export function fen(situation: ct.Situation): ct.Fen {
   return `${b.fen(situation.board)} ${color} ${rest}`;
 }
 
-export const situation = sz.sanitized(db.situations, _situation);
-
-function _situation(fen: string): ct.Maybe<ct.Situation> {
+export function situation(fen: string): ct.Maybe<ct.Situation> {
 
   let _pieces = new Map()
 
@@ -59,13 +54,7 @@ function _situation(fen: string): ct.Maybe<ct.Situation> {
     }
   }
 
-  let board = boards.get(_pieces);
-
-  for (let [pos, piece] of _pieces.entries()) {
-    actors.get({pos, 
-                piece,
-                board});
-  };
+  let board = _pieces;
   
   return {
     board,

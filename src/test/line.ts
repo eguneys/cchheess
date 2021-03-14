@@ -62,7 +62,7 @@ export default function() {
     qed('1. e4', l.aply('line1', 1, 'e4'), undefined);
   });
 
-  it.only('plays a game', () => {
+  it('plays a game', () => {
 
     l.fen('lineg', ifen);
 

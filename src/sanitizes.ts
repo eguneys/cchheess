@@ -38,6 +38,10 @@ export class Sanitizes<A> {
       return a as A & Sanitized;
     }
   }
+
+  size() {
+    return this.world.length;
+  }
 }
 
 export class SanitizedSpace2<A, B, SubA, SubB, C> {

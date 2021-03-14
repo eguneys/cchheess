@@ -55,13 +55,11 @@ export const tMo = (() => {
 
 export function runtests() {
   let errs = [];
-  let i = 0;
 
   let testOnly = onlyset.length > 0 ? onlyset : stset ;
 
   testOnly.forEach(_ => {
     try {
-      i++;
       testBegin(_);
       let msg = _.fn();
       if (msg) {
@@ -72,15 +70,15 @@ export function runtests() {
     }
   });
 
-  testOnly
+  let failed = testOnly
     .filter(_ => !!_.fail)
-    .forEach(testFailed)
+    .map(testFailed)
 
-  testOnly
+  let errored = testOnly
     .filter(_ => !!_.err)
-    .forEach(testThrowed);
+    .map(testThrowed);
 
-  console.log(`done ${i}`);
+  console.log(`done ${testOnly.length} / ${failed.length} failed`);
 }
 
 export function it(msg: string, fn: () => void | string | undefined): void {

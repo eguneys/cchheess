@@ -16,7 +16,7 @@ export default function() {
     }, {a : '1', b: '*', c: '*' }));
   });
 
-  it.only('sanitizes numbers', () => {
+  it('sanitizes numbers', () => {
     let dirs = new sz.Sanitizes<number>();
     nacc('san 3 3', dirs.get(3), dirs.get(3))
     nac('san 3 4', dirs.get(3) !== dirs.get(4))

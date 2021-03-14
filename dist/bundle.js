@@ -1,3098 +1,417 @@
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.moves = void 0;
-
-const db = __importStar(require("./db"));
-
-const b = __importStar(require("./board"));
-
-const disp = __importStar(require("./displace"));
-
-function moves({
-  board,
-  piece,
-  pos
-}) {
-  let situationBefore = db.situations.get({
-    board,
-    turn: piece.color
-  });
-  let displaces = disp.get(piece, pos);
-  let res = [];
-
-  for (let to of displaces) {
-    let b1 = board,
-        b3 = b.move(b1, pos, to);
-
-    if (b3) {
-      let m = {
-        piece,
-        situationBefore,
-        after: b3,
-        orig: pos,
-        dest: to,
-        enpassant: false
-      };
-      res.push(m);
-    }
-  } // });
-  // let routes = db.routes.queryz(dirs, pos);
-  // let moves = db.moves.queryz(routes, board);
-  // piece -> directions
-  // directions - pos -> routes
-  // routes - board -> moves
-
-
-  return res;
-}
-
-exports.moves = moves;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.fen = exports.move = void 0;
-
-const p = __importStar(require("./pos"));
-
-const pi = __importStar(require("./piece"));
-
-const db = __importStar(require("./db"));
-
-const db2 = __importStar(require("./db2"));
-
-const sz = __importStar(require("./sanitizes"));
-
-const u = __importStar(require("./util"));
-
-exports.move = sz.sanitizedU(db.boards, u.seqable(_move));
-
-function fen(board) {
-  let res = [];
-
-  for (let rank of p.directions.slice(0).reverse()) {
-    let rankS = '';
-    let space = 0;
-
-    for (let file of p.directions) {
-      let piece = board.get(db2.poss.pget(file, rank));
-
-      if (piece) {
-        if (space !== 0) {
-          rankS += space;
-          space = 0;
-        }
-
-        rankS += pi.toFenStr(piece);
-      } else {
-        space++;
-      }
-    }
-
-    if (space !== 0) {
-      rankS += space;
-    }
-
-    res.push(rankS);
-  }
-
-  return res.join('/');
-}
-
-exports.fen = fen;
-
-function _move(board, pos, to) {
-  let {
-    actors
-  } = db;
-
-  if (!board.has(to)) {
-    let p = board.get(pos);
-
-    if (p) {
-      let b2 = new Map([...board]);
-      b2.delete(pos);
-      b2.set(to, p);
-
-      for (let [pos, piece] of b2.entries()) {
-        actors.get({
-          pos,
-          piece,
-          board: b2
-        });
-      }
-
-      ;
-      return b2;
-    }
-  }
-}
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.Calculates = void 0;
-
-const isequal_1 = require("./isequal");
-
-const sz = __importStar(require("./sanitizes"));
-
-class Calculates {
-  constructor(fa) {
-    this.fa = fa;
-    this.vs = new sz.Sanitizes();
-  }
-
-  querz(os, q) {
-    return os.map(o => {
-      let res = this.vs.query([o, "*"]);
-
-      if (res.length === 0) {
-        return this.vs.get([o, this.fa(o)]);
-      } else return res[0];
-    }).filter(ov => {
-      return isequal_1.mapmatch(ov[1], q);
-    });
-  }
-
-}
-
-exports.Calculates = Calculates;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.actors = exports.histories = exports.moves = exports.situations = exports.lines = exports.boards = void 0;
-
-const sz = __importStar(require("./sanitizes"));
-
-exports.boards = new sz.Sanitizes();
-exports.lines = new sz.Sanitizes();
-exports.situations = new sz.Sanitizes();
-exports.moves = new sz.Sanitizes();
-exports.histories = new sz.Sanitizes();
-/**** types 2 ****/
-
-exports.actors = new sz.Sanitizes();
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.situationAfters = exports.actorMoves = exports.poss = exports.pieces = void 0;
-
-const sz = __importStar(require("./sanitizes"));
-
-const cz = __importStar(require("./calculates"));
-
-const m = __importStar(require("./move"));
-
-const a = __importStar(require("./actor"));
-
-const p = __importStar(require("./pos"));
-
-const r = __importStar(require("./role"));
-
-exports.pieces = new sz.SanitizedSpace2((color, role) => ({
-  color,
-  role
-}), r.mColor, r.mRole);
-exports.poss = new sz.SanitizedSpace2((f, r) => [f, r], p.mDirection, p.mDirection);
-exports.actorMoves = new cz.Calculates(a.moves);
-exports.situationAfters = new cz.Calculates(m.situationAfter); // export const routes = new cz.Calculates<ct.Direction, Array<ct.Route>>(d.routes);
-// export const moves = new cz.Calculates<ct.Route, Array<ct.Move>>(route.moves);
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.rroute1 = exports.rroute2 = exports.rrouteflat1 = exports.rroute0 = exports.isRoute0 = exports.isRoute1 = exports.ddir2 = exports.ddir1 = exports.ddir0 = void 0;
-
-const p = __importStar(require("./pos"));
-
-const db2 = __importStar(require("./db2"));
-
-function ddir0(_d0, d) {
-  let _res = _d0 + d;
-
-  if (p.isDirection(_res)) {
-    return _res;
-  }
-}
-
-exports.ddir0 = ddir0;
-
-function ddir1(_d1, p) {
-  return db2.poss.mget(ddir0(_d1[0], p[0]), ddir0(_d1[1], p[1]));
-}
-
-exports.ddir1 = ddir1;
-
-function ddir2(_d2, p) {
-  let res = new Set();
-
-  _d2.forEach(_ => {
-    let _res = ddir1(_, p);
-
-    if (_res) {
-      res.add(_res);
-    }
-  });
-
-  return res;
-}
-
-exports.ddir2 = ddir2;
-
-function isRoute1(_) {
-  if (Array.isArray(_)) {
-    return _.every(isRoute0);
-  } else {
-    return false;
-  }
-}
-
-exports.isRoute1 = isRoute1;
-
-function isRoute0(_) {
-  if (Array.isArray(_)) {
-    if (_.length >= 1 && _.length <= 8) {
-      return !Array.isArray(_[0]);
-    }
-  }
-
-  return false;
-}
-
-exports.isRoute0 = isRoute0;
-
-function rroute0(_d0, dir) {
-  let res = [dir];
-  let ndir = dir;
-
-  if (_d0 === 0) {
-    return res;
-  }
-
-  while (true) {
-    let _mndir = ddir0(_d0, ndir);
-
-    if (_mndir) {
-      ndir = _mndir;
-      res.push(ndir);
-    } else {
-      break;
-    }
-  }
-
-  return res;
-}
-
-exports.rroute0 = rroute0;
-
-function rrouteflat1(_d2, pos) {
-  return new Set(rroute2(_d2, pos).flatMap(r1 => {
-    if (r1[1]) {
-      return [r1[1]];
-    } else {
-      return [];
-    }
-  }));
-}
-
-exports.rrouteflat1 = rrouteflat1;
-
-function rroute2(_d2, pos) {
-  let res = [];
-
-  for (let _d1 of _d2) {
-    res.push(rroute1(_d1, pos));
-  }
-
-  return res;
-}
-
-exports.rroute2 = rroute2;
-
-function rroute1(_d1, pos) {
-  let f0 = rroute0(_d1[0], pos[0]),
-      f1 = rroute0(_d1[1], pos[1]);
-  let res = [db2.poss.pget(f0[0], f1[0])];
-  let oneWraps = Math.min(_d1[0] === 0 ? f1.length : f0.length, _d1[1] === 0 ? f0.length : f1.length);
-
-  for (let i = 1; i < oneWraps; i++) {
-    if (res) {
-      res.push(db2.poss.pget(f0[f0.length === 1 ? 0 : i], f1[f1.length === 1 ? 0 : i]));
-    }
-  }
-
-  return res;
-}
-
-exports.rroute1 = rroute1;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.get = void 0;
-
-const sss = __importStar(require("./sss"));
-
-const dir = __importStar(require("./direction"));
-
-const dt = __importStar(require("./dtypes"));
-
-let regulars = {
-  'n': dt.DKnight,
-  'r': dt.DRook,
-  'b': dt.DBishop,
-  'q': dt.DQueen,
-  'k': dt.DKing
-};
-const pawnMove2 = {
-  'w': sss.union(dt.DWPawn2, dt.DWPawn),
-  'b': sss.union(dt.DBPawn2, dt.DBPawn)
-};
-const pawnMove = {
-  'w': dt.DWPawn,
-  'b': dt.DBPawn
-};
-const pawn2MoveRanks = {
-  'w': 2,
-  'b': 7
-};
-
-function dType(piece, pos) {
-  if (piece.role === 'p') {
-    let p2Rank = pawn2MoveRanks[piece.color];
-
-    if (pos[1] === p2Rank) {
-      return pawnMove2[piece.color];
-    } else {
-      return pawnMove[piece.color];
-    }
-  } else {
-    return regulars[piece.role];
-  }
-}
-
-function get(piece, pos) {
-  return dir.rrouteflat1(dType(piece, pos), pos);
-}
-
-exports.get = get;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.DBPawnC = exports.DWPawnC = exports.DBPawn = exports.DWPawn = exports.DBPawn2 = exports.DWPawn2 = exports.DKing = exports.DQueen = exports.DBishop = exports.DRook = exports.DKnight = void 0;
-
-const sss = __importStar(require("./sss"));
-
-exports.DKnight = new Set([[-1, 2], [-1, -2], [1, 2], [1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]]);
-exports.DRook = new Set([[-1, 0], [1, 0], [0, -1], [0, 1]]);
-exports.DBishop = new Set([[-1, 1], [-1, -1], [1, 1], [1, -1]]);
-exports.DQueen = sss.union(exports.DRook, exports.DBishop);
-exports.DKing = exports.DQueen;
-exports.DWPawn2 = new Set([[0, 2]]);
-exports.DBPawn2 = new Set([[0, -2]]);
-exports.DWPawn = new Set([[0, 1]]);
-exports.DBPawn = new Set([[0, -1]]);
-exports.DWPawnC = new Set([[1, 1], [-1, 1]]);
-exports.DBPawnC = new Set([[1, -1], [-1, -1]]);
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.space = exports.situation = exports.fen = void 0;
-
-const b = __importStar(require("./board"));
-
-const db2 = __importStar(require("./db2"));
-
-const db = __importStar(require("./db"));
-
-const sz = __importStar(require("./sanitizes"));
+/*
+ * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
+ * This devtool is neither made for production nor for readable output files.
+ * It uses "eval()" calls to create a separate source file in the browser devtools.
+ * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
+ * or disable the default devtool with "devtool: false".
+ * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
+ */
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/actor.ts":
+/*!**********************!*\
+  !*** ./src/actor.ts ***!
+  \**********************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.moves = void 0;\nconst db = __importStar(__webpack_require__(/*! ./db */ \"./src/db.ts\"));\nconst b = __importStar(__webpack_require__(/*! ./board */ \"./src/board.ts\"));\nconst disp = __importStar(__webpack_require__(/*! ./displace */ \"./src/displace.ts\"));\nfunction moves({ board, piece, pos }) {\n    let situationBefore = db.situations.get({\n        board,\n        turn: piece.color\n    });\n    let displaces = disp.get(piece, pos);\n    let res = [];\n    for (let to of displaces) {\n        let b1 = board, b3 = b.move(b1, pos, to);\n        if (b3) {\n            let m = {\n                piece,\n                situationBefore,\n                after: b3,\n                orig: pos,\n                dest: to,\n                enpassant: false\n            };\n            res.push(m);\n        }\n    }\n    // });\n    // let routes = db.routes.queryz(dirs, pos);\n    // let moves = db.moves.queryz(routes, board);\n    // piece -> directions\n    // directions - pos -> routes\n    // routes - board -> moves\n    return res;\n}\nexports.moves = moves;\n\n\n//# sourceURL=webpack://cchheess/./src/actor.ts?");
+
+/***/ }),
+
+/***/ "./src/board.ts":
+/*!**********************!*\
+  !*** ./src/board.ts ***!
+  \**********************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.fen = exports.move = void 0;\nconst p = __importStar(__webpack_require__(/*! ./pos */ \"./src/pos.ts\"));\nconst pi = __importStar(__webpack_require__(/*! ./piece */ \"./src/piece.ts\"));\nconst db = __importStar(__webpack_require__(/*! ./db */ \"./src/db.ts\"));\nconst db2 = __importStar(__webpack_require__(/*! ./db2 */ \"./src/db2.ts\"));\nconst sz = __importStar(__webpack_require__(/*! ./sanitizes */ \"./src/sanitizes.ts\"));\nconst u = __importStar(__webpack_require__(/*! ./util */ \"./src/util.ts\"));\nexports.move = sz.sanitizedU(db.boards, u.seqable(_move));\nfunction fen(board) {\n    let res = [];\n    for (let rank of p.directions.slice(0).reverse()) {\n        let rankS = '';\n        let space = 0;\n        for (let file of p.directions) {\n            let piece = board.get(db2.poss.pget(file, rank));\n            if (piece) {\n                if (space !== 0) {\n                    rankS += space;\n                    space = 0;\n                }\n                rankS += pi.toFenStr(piece);\n            }\n            else {\n                space++;\n            }\n        }\n        if (space !== 0) {\n            rankS += space;\n        }\n        res.push(rankS);\n    }\n    return res.join('/');\n}\nexports.fen = fen;\nfunction _move(board, pos, to) {\n    let { actors } = db;\n    if (!board.has(to)) {\n        let p = board.get(pos);\n        if (p) {\n            let b2 = new Map([...board]);\n            b2.delete(pos);\n            b2.set(to, p);\n            for (let [pos, piece] of b2.entries()) {\n                actors.get({ pos,\n                    piece,\n                    board: b2 });\n            }\n            ;\n            return b2;\n        }\n    }\n}\n\n\n//# sourceURL=webpack://cchheess/./src/board.ts?");
+
+/***/ }),
+
+/***/ "./src/calculates.ts":
+/*!***************************!*\
+  !*** ./src/calculates.ts ***!
+  \***************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.Calculates = void 0;\nconst isequal_1 = __webpack_require__(/*! ./isequal */ \"./src/isequal.ts\");\nconst sz = __importStar(__webpack_require__(/*! ./sanitizes */ \"./src/sanitizes.ts\"));\nclass Calculates {\n    constructor(fa) {\n        this.fa = fa;\n        this.vs = new sz.Sanitizes();\n    }\n    querz(os, q) {\n        return os.map(o => {\n            let res = this.vs.query([o, \"*\"]);\n            if (res.length === 0) {\n                return this.vs.get([o, this.fa(o)]);\n            }\n            else\n                return res[0];\n        }).filter(ov => {\n            return isequal_1.mapmatch(ov[1], q);\n        });\n    }\n}\nexports.Calculates = Calculates;\n\n\n//# sourceURL=webpack://cchheess/./src/calculates.ts?");
+
+/***/ }),
+
+/***/ "./src/db.ts":
+/*!*******************!*\
+  !*** ./src/db.ts ***!
+  \*******************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.actors = exports.histories = exports.moves = exports.situations = exports.lines = exports.boards = void 0;\nconst sz = __importStar(__webpack_require__(/*! ./sanitizes */ \"./src/sanitizes.ts\"));\nexports.boards = new sz.Sanitizes();\nexports.lines = new sz.Sanitizes();\nexports.situations = new sz.Sanitizes();\nexports.moves = new sz.Sanitizes();\nexports.histories = new sz.Sanitizes();\n/**** types 2 ****/\nexports.actors = new sz.Sanitizes();\n\n\n//# sourceURL=webpack://cchheess/./src/db.ts?");
+
+/***/ }),
+
+/***/ "./src/db2.ts":
+/*!********************!*\
+  !*** ./src/db2.ts ***!
+  \********************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.situationAfters = exports.actorMoves = exports.poss = exports.pieces = void 0;\nconst sz = __importStar(__webpack_require__(/*! ./sanitizes */ \"./src/sanitizes.ts\"));\nconst cz = __importStar(__webpack_require__(/*! ./calculates */ \"./src/calculates.ts\"));\nconst m = __importStar(__webpack_require__(/*! ./move */ \"./src/move.ts\"));\nconst a = __importStar(__webpack_require__(/*! ./actor */ \"./src/actor.ts\"));\nconst p = __importStar(__webpack_require__(/*! ./pos */ \"./src/pos.ts\"));\nconst r = __importStar(__webpack_require__(/*! ./role */ \"./src/role.ts\"));\nexports.pieces = new sz.SanitizedSpace2((color, role) => ({ color, role }), r.mColor, r.mRole);\nexports.poss = new sz.SanitizedSpace2((f, r) => [f, r], p.mDirection, p.mDirection);\nexports.actorMoves = new cz.Calculates(a.moves);\nexports.situationAfters = new cz.Calculates(m.situationAfter);\n// export const routes = new cz.Calculates<ct.Direction, Array<ct.Route>>(d.routes);\n// export const moves = new cz.Calculates<ct.Route, Array<ct.Move>>(route.moves);\n\n\n//# sourceURL=webpack://cchheess/./src/db2.ts?");
+
+/***/ }),
+
+/***/ "./src/direction.ts":
+/*!**************************!*\
+  !*** ./src/direction.ts ***!
+  \**************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.rroute1 = exports.rroute2 = exports.rrouteflat1 = exports.rroute0 = exports.isRoute0 = exports.isRoute1 = exports.ddir2 = exports.ddir1 = exports.ddir0 = void 0;\nconst p = __importStar(__webpack_require__(/*! ./pos */ \"./src/pos.ts\"));\nconst db2 = __importStar(__webpack_require__(/*! ./db2 */ \"./src/db2.ts\"));\nfunction ddir0(_d0, d) {\n    let _res = (_d0 + d);\n    if (p.isDirection(_res)) {\n        return _res;\n    }\n}\nexports.ddir0 = ddir0;\nfunction ddir1(_d1, p) {\n    return db2.poss.mget(ddir0(_d1[0], p[0]), ddir0(_d1[1], p[1]));\n}\nexports.ddir1 = ddir1;\nfunction ddir2(_d2, p) {\n    let res = new Set();\n    _d2.forEach(_ => {\n        let _res = ddir1(_, p);\n        if (_res) {\n            res.add(_res);\n        }\n    });\n    return res;\n}\nexports.ddir2 = ddir2;\nfunction isRoute1(_) {\n    if (Array.isArray(_)) {\n        return _.every(isRoute0);\n    }\n    else {\n        return false;\n    }\n}\nexports.isRoute1 = isRoute1;\nfunction isRoute0(_) {\n    if (Array.isArray(_)) {\n        if (_.length >= 1 && _.length <= 8) {\n            return !Array.isArray(_[0]);\n        }\n    }\n    return false;\n}\nexports.isRoute0 = isRoute0;\nfunction rroute0(_d0, dir) {\n    let res = [dir];\n    let ndir = dir;\n    if (_d0 === 0) {\n        return res;\n    }\n    while (true) {\n        let _mndir = ddir0(_d0, ndir);\n        if (_mndir) {\n            ndir = _mndir;\n            res.push(ndir);\n        }\n        else {\n            break;\n        }\n    }\n    return res;\n}\nexports.rroute0 = rroute0;\nfunction rrouteflat1(_d2, pos) {\n    return new Set(rroute2(_d2, pos).flatMap(r1 => {\n        if (r1[1]) {\n            return [r1[1]];\n        }\n        else {\n            return [];\n        }\n    }));\n}\nexports.rrouteflat1 = rrouteflat1;\nfunction rroute2(_d2, pos) {\n    let res = [];\n    for (let _d1 of _d2) {\n        res.push(rroute1(_d1, pos));\n    }\n    return res;\n}\nexports.rroute2 = rroute2;\nfunction rroute1(_d1, pos) {\n    let f0 = rroute0(_d1[0], pos[0]), f1 = rroute0(_d1[1], pos[1]);\n    let res = [db2.poss.pget(f0[0], f1[0])];\n    let oneWraps = Math.min((_d1[0] === 0 ? f1.length : f0.length), (_d1[1] === 0 ? f0.length : f1.length));\n    for (let i = 1; i < oneWraps; i++) {\n        if (res) {\n            res.push(db2.poss.pget(f0[f0.length === 1 ? 0 : i], f1[f1.length === 1 ? 0 : i]));\n        }\n    }\n    return res;\n}\nexports.rroute1 = rroute1;\n\n\n//# sourceURL=webpack://cchheess/./src/direction.ts?");
+
+/***/ }),
+
+/***/ "./src/displace.ts":
+/*!*************************!*\
+  !*** ./src/displace.ts ***!
+  \*************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.get = void 0;\nconst sss = __importStar(__webpack_require__(/*! ./sss */ \"./src/sss.ts\"));\nconst dir = __importStar(__webpack_require__(/*! ./direction */ \"./src/direction.ts\"));\nconst dt = __importStar(__webpack_require__(/*! ./dtypes */ \"./src/dtypes.ts\"));\nlet regulars = {\n    'n': dt.DKnight,\n    'r': dt.DRook,\n    'b': dt.DBishop,\n    'q': dt.DQueen,\n    'k': dt.DKing\n};\nconst pawnMove2 = {\n    'w': sss.union(dt.DWPawn2, dt.DWPawn),\n    'b': sss.union(dt.DBPawn2, dt.DBPawn)\n};\nconst pawnMove = {\n    'w': dt.DWPawn,\n    'b': dt.DBPawn\n};\nconst pawn2MoveRanks = {\n    'w': 2,\n    'b': 7\n};\nfunction dType(piece, pos) {\n    if (piece.role === 'p') {\n        let p2Rank = pawn2MoveRanks[piece.color];\n        if (pos[1] === p2Rank) {\n            return pawnMove2[piece.color];\n        }\n        else {\n            return pawnMove[piece.color];\n        }\n    }\n    else {\n        return regulars[piece.role];\n    }\n}\nfunction get(piece, pos) {\n    return dir.rrouteflat1(dType(piece, pos), pos);\n}\nexports.get = get;\n\n\n//# sourceURL=webpack://cchheess/./src/displace.ts?");
+
+/***/ }),
+
+/***/ "./src/dtypes.ts":
+/*!***********************!*\
+  !*** ./src/dtypes.ts ***!
+  \***********************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.DBPawnC = exports.DWPawnC = exports.DBPawn = exports.DWPawn = exports.DBPawn2 = exports.DWPawn2 = exports.DKing = exports.DQueen = exports.DBishop = exports.DRook = exports.DKnight = void 0;\nconst sss = __importStar(__webpack_require__(/*! ./sss */ \"./src/sss.ts\"));\nexports.DKnight = new Set([[-1, 2], [-1, -2],\n    [1, 2], [1, -2],\n    [2, 1], [2, -1],\n    [-2, 1], [-2, -1]]);\nexports.DRook = new Set([[-1, 0], [1, 0], [0, -1], [0, 1]]);\nexports.DBishop = new Set([[-1, 1], [-1, -1], [1, 1], [1, -1]]);\nexports.DQueen = sss.union(exports.DRook, exports.DBishop);\nexports.DKing = exports.DQueen;\nexports.DWPawn2 = new Set([[0, 2]]);\nexports.DBPawn2 = new Set([[0, -2]]);\nexports.DWPawn = new Set([[0, 1]]);\nexports.DBPawn = new Set([[0, -1]]);\nexports.DWPawnC = new Set([[1, 1], [-1, 1]]);\nexports.DBPawnC = new Set([[1, -1], [-1, -1]]);\n\n\n//# sourceURL=webpack://cchheess/./src/dtypes.ts?");
+
+/***/ }),
+
+/***/ "./src/fen.ts":
+/*!********************!*\
+  !*** ./src/fen.ts ***!
+  \********************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.space = exports.situation = exports.fen = void 0;\nconst b = __importStar(__webpack_require__(/*! ./board */ \"./src/board.ts\"));\nconst db2 = __importStar(__webpack_require__(/*! ./db2 */ \"./src/db2.ts\"));\nconst db = __importStar(__webpack_require__(/*! ./db */ \"./src/db.ts\"));\nconst sz = __importStar(__webpack_require__(/*! ./sanitizes */ \"./src/sanitizes.ts\"));\n;\nlet { pieces, poss } = db2;\nlet { actors, boards } = db;\nfunction fen(situation) {\n    let color = situation.turn;\n    let rest = \"KQkq - 0 1\";\n    return `${b.fen(situation.board)} ${color} ${rest}`;\n}\nexports.fen = fen;\nexports.situation = sz.sanitized(db.situations, _situation);\nfunction _situation(fen) {\n    let _pieces = new Map();\n    let [ranksS, colorS] = fen.split(' ');\n    if (!ranksS || !colorS) {\n        return;\n    }\n    if (colorS !== \"w\" && colorS !== \"b\") {\n        return;\n    }\n    let ranks = ranksS.split('/');\n    if (ranks.length !== 8) {\n        return;\n    }\n    for (let i = 0; i < ranks.length; i++) {\n        let rank = 8 - i;\n        let file = 1;\n        for (let j = 0; j < ranks[i].length; j++) {\n            let c = ranks[i][j];\n            let piece = pieces.nget(c, c);\n            if (piece) {\n                let pos = poss.nget(file, rank);\n                if (pos && piece) {\n                    _pieces.set(pos, piece);\n                }\n                file += 1;\n            }\n            else {\n                let _s = space(c);\n                if (_s) {\n                    file += _s;\n                }\n            }\n        }\n    }\n    let board = boards.get(_pieces);\n    for (let [pos, piece] of _pieces.entries()) {\n        actors.get({ pos,\n            piece,\n            board });\n    }\n    ;\n    return {\n        board,\n        turn: colorS\n    };\n}\nfunction space(c) {\n    if (c.match(/[1-8]/)) {\n        return parseInt(c);\n    }\n}\nexports.space = space;\n\n\n//# sourceURL=webpack://cchheess/./src/fen.ts?");
+
+/***/ }),
+
+/***/ "./src/history.ts":
+/*!************************!*\
+  !*** ./src/history.ts ***!
+  \************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.add = exports.first = void 0;\nconst db_1 = __webpack_require__(/*! ./db */ \"./src/db.ts\");\nconst m = __importStar(__webpack_require__(/*! ./move */ \"./src/move.ts\"));\nconst db = __importStar(__webpack_require__(/*! ./db */ \"./src/db.ts\"));\nconst u = __importStar(__webpack_require__(/*! ./util */ \"./src/util.ts\"));\nconst sz = __importStar(__webpack_require__(/*! ./sanitizes */ \"./src/sanitizes.ts\"));\nfunction first(position, sanMeta) {\n    let move = m.get(position, sanMeta);\n    if (move) {\n        return db_1.histories.get([move]);\n    }\n}\nexports.first = first;\nexports.add = sz.sanitizedU(db.histories, u.seqable(_add));\nfunction _add(history, sanMeta) {\n    let lastMove = history[history.length - 1];\n    let move = m.get(m.situationAfter(lastMove), sanMeta);\n    if (move) {\n        return db_1.histories.get([\n            ...history,\n            move\n        ]);\n    }\n}\n\n\n//# sourceURL=webpack://cchheess/./src/history.ts?");
+
+/***/ }),
+
+/***/ "./src/isequal.ts":
+/*!************************!*\
+  !*** ./src/isequal.ts ***!
+  \************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.objPEqual = exports.refPEqual2 = exports.objEqual = exports.mapEqual = exports.refEqual2 = exports.refEqual = exports.isEqualAny = exports.match = exports.mapmatch = void 0;\nfunction mapmatch(a, m) {\n    if (m === '*') {\n        return true;\n    }\n    else if (Array.isArray(a) && Array.isArray(m)) {\n        return exports.refPEqual2(a, m);\n    }\n    else {\n        return exports.objPEqual(a, m);\n    }\n}\nexports.mapmatch = mapmatch;\nfunction match(a, m) {\n    if (m === \"*\") {\n        return true;\n    }\n    else if (Array.isArray(m)) {\n        return m.includes(a);\n    }\n    else {\n        return a === m;\n    }\n}\nexports.match = match;\nconst isEqualAny = (a, b) => {\n    if (a === b)\n        return true;\n    if (Array.isArray(a) && Array.isArray(b))\n        return exports.refEqual2(a, b);\n    if (a instanceof Map && b instanceof Map)\n        return exports.mapEqual(a, b);\n    else {\n        return exports.objEqual(a, b);\n    }\n};\nexports.isEqualAny = isEqualAny;\nconst refEqual = (a, b) => a === b;\nexports.refEqual = refEqual;\nconst refEqual2 = (a, b) => {\n    if (a.length === b.length) {\n        for (let key in a) {\n            if (a[key] !== b[key]) {\n                return false;\n            }\n        }\n        return true;\n    }\n    return false;\n};\nexports.refEqual2 = refEqual2;\nconst mapEqual = (a, b) => {\n    if (a.size !== b.size) {\n        return false;\n    }\n    for (var [key, _a] of a) {\n        let _b = b.get(key);\n        if (_a !== _b || (_b === undefined && !a.has(key))) {\n            return false;\n        }\n    }\n    return true;\n};\nexports.mapEqual = mapEqual;\nconst objEqual = (a, b) => {\n    if (typeof a === 'object' && typeof b === 'object') {\n        if (Object.keys(a).length !== Object.keys(b).length) {\n            return false;\n        }\n        for (let key in a) {\n            if (a[key] !== b[key]) {\n                return false;\n            }\n        }\n        return true;\n    }\n    return false;\n};\nexports.objEqual = objEqual;\nconst refPEqual2 = (a, b) => {\n    for (let key in b) {\n        if (!match(a[key], b[key])) {\n            return false;\n        }\n    }\n    return true;\n};\nexports.refPEqual2 = refPEqual2;\nconst objPEqual = (a, b) => {\n    if (typeof a === 'object' && typeof b === 'object') {\n        for (let key in b) {\n            if (!match(a[key], b[key])) {\n                return false;\n            }\n        }\n        return true;\n    }\n    else {\n        return false;\n    }\n};\nexports.objPEqual = objPEqual;\n\n\n//# sourceURL=webpack://cchheess/./src/isequal.ts?");
+
+/***/ }),
+
+/***/ "./src/line.ts":
+/*!*********************!*\
+  !*** ./src/line.ts ***!
+  \*********************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.aply = exports.ply = exports.fen = exports.isLineError = exports.LineError = void 0;\nconst ct = __importStar(__webpack_require__(/*! ./types */ \"./src/types.ts\"));\nconst makes_1 = __webpack_require__(/*! ./makes */ \"./src/makes.ts\");\nconst f = __importStar(__webpack_require__(/*! ./fen */ \"./src/fen.ts\"));\nconst sanApi = __importStar(__webpack_require__(/*! ./san */ \"./src/san.ts\"));\nconst hApi = __importStar(__webpack_require__(/*! ./history */ \"./src/history.ts\"));\nconst db = __importStar(__webpack_require__(/*! ./db */ \"./src/db.ts\"));\nfunction fenLineFirstPly(parent, sanMeta) {\n    let _h1 = hApi.first(parent, sanMeta);\n    if (_h1) {\n        return db.lines.get({\n            parent,\n            history: _h1\n        });\n    }\n    else {\n        return LineError.CantMakeMove;\n    }\n}\nfunction moveLineNewPly({ parent, history }, ply, sanMeta) {\n    if (history.length < ply - 1) {\n        return LineError.NoMoveFound;\n    }\n    else if (history.length > ply - 1) {\n        return LineError.AlreadySet;\n    }\n    else {\n        let _h2 = hApi.add(history, sanMeta);\n        if (_h2) {\n            return db.lines.get({\n                parent,\n                history: _h2\n            });\n        }\n        else {\n            return LineError.CantMakeMove;\n        }\n    }\n}\nvar LineError;\n(function (LineError) {\n    LineError[\"AlreadySet\"] = \"Already Set\";\n    LineError[\"InvalidInput\"] = \"Invalid Input\";\n    LineError[\"NoMoveFound\"] = \"No Move Found\";\n    LineError[\"CantMakeMove\"] = \"Cant Make Move\";\n})(LineError = exports.LineError || (exports.LineError = {}));\nfunction isLineError(_) {\n    return Object.values(LineError).includes(_);\n}\nexports.isLineError = isLineError;\nfunction _fen(fen) {\n    let sit = f.situation(fen);\n    if (sit) {\n        return sit;\n    }\n    else {\n        return LineError.InvalidInput;\n    }\n}\nfunction _ply(line, ply) {\n    if (ply === 0) {\n        if (ct.isFenLine(line)) {\n            return f.fen(line);\n        }\n    }\n    return LineError.NoMoveFound;\n}\nfunction _aply(line, ply, move) {\n    let _sanMeta = sanApi.str2meta(move);\n    if (_sanMeta) {\n        if (ply === 0) {\n            return LineError.AlreadySet;\n        }\n        else {\n            if (ct.isFenLine(line)) {\n                if (ply !== 1) {\n                    return LineError.NoMoveFound;\n                }\n                else {\n                    let res = fenLineFirstPly(line, _sanMeta);\n                    return res;\n                }\n            }\n            else {\n                if (ply >= 2) {\n                    return moveLineNewPly(line, ply, _sanMeta);\n                }\n                else {\n                    return LineError.AlreadySet;\n                }\n            }\n        }\n    }\n    else {\n        return LineError.InvalidInput;\n    }\n}\nlet _makes = new makes_1.Makes();\nexports.fen = _makes.setter0(_fen, isLineError);\nexports.ply = _makes.getter1(_ply);\nexports.aply = _makes.setter1(_aply, isLineError);\n\n\n//# sourceURL=webpack://cchheess/./src/line.ts?");
+
+/***/ }),
+
+/***/ "./src/makes.ts":
+/*!**********************!*\
+  !*** ./src/makes.ts ***!
+  \**********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.Makes = exports.MakesError = void 0;\nvar MakesError;\n(function (MakesError) {\n    MakesError[\"AlreadySet\"] = \"already set\";\n    MakesError[\"NotSet\"] = \"not set\";\n})(MakesError = exports.MakesError || (exports.MakesError = {}));\nclass Makes {\n    constructor() {\n        this.data = new Map();\n    }\n    setter0(f, isApiError) {\n        let data = this.data;\n        return function (key, arg1) {\n            let _res = data.get(key);\n            if (_res) {\n                return MakesError.AlreadySet;\n            }\n            else {\n                let fres = f(arg1);\n                if (isApiError(fres)) {\n                    return fres;\n                }\n                else {\n                    data.set(key, fres);\n                }\n            }\n        };\n    }\n    setter1(f, isApiError) {\n        let data = this.data;\n        return function (key, a1, a2) {\n            let _v = data.get(key);\n            if (_v) {\n                let _res = f(_v, a1, a2);\n                if (isApiError(_res)) {\n                    return _res;\n                }\n                else {\n                    data.set(key, _res);\n                }\n            }\n            else {\n                return MakesError.NotSet;\n            }\n        };\n    }\n    getter1(f) {\n        let data = this.data;\n        return function (key, a1) {\n            let _v = data.get(key);\n            if (_v) {\n                let _res = f(_v, a1);\n                return _res;\n            }\n            else {\n                return MakesError.NotSet;\n            }\n        };\n    }\n}\nexports.Makes = Makes;\n\n\n//# sourceURL=webpack://cchheess/./src/makes.ts?");
+
+/***/ }),
+
+/***/ "./src/move.ts":
+/*!*********************!*\
+  !*** ./src/move.ts ***!
+  \*********************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports._situationAfter = exports.situationAfter = exports.get = void 0;\nconst db = __importStar(__webpack_require__(/*! ./db */ \"./src/db.ts\"));\nconst db2 = __importStar(__webpack_require__(/*! ./db2 */ \"./src/db2.ts\"));\nconst sz = __importStar(__webpack_require__(/*! ./sanitizes */ \"./src/sanitizes.ts\"));\nconst r = __importStar(__webpack_require__(/*! ./role */ \"./src/role.ts\"));\nfunction get(before, sanMeta) {\n    let { poss, pieces, actorMoves } = db2;\n    let { actors } = db;\n    let _actors = actors.query({\n        pos: poss.query([sanMeta.file || \"*\", sanMeta.rank || \"*\"]),\n        piece: pieces.query({\n            role: sanMeta.role,\n            color: before.turn\n        }),\n        board: before.board\n    });\n    return actorMoves.querz(_actors, \"*\")\n        .flatMap(([actor, moves]) => {\n        let move = moves.find(move => move.dest === sanMeta.to);\n        if (move) {\n            return [move];\n        }\n        else {\n            return [];\n        }\n    })[0];\n}\nexports.get = get;\nexports.situationAfter = sz.sanitized(db.situations, _situationAfter);\nfunction _situationAfter(move) {\n    return {\n        board: move.after,\n        turn: r.otherColor(move.piece.color)\n    };\n}\nexports._situationAfter = _situationAfter;\n\n\n//# sourceURL=webpack://cchheess/./src/move.ts?");
+
+/***/ }),
+
+/***/ "./src/piece.ts":
+/*!**********************!*\
+  !*** ./src/piece.ts ***!
+  \**********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.toFenStr = void 0;\nfunction toFenStr(piece) {\n    if (piece.color === 'w') {\n        return piece.role.toUpperCase();\n    }\n    return piece.role;\n}\nexports.toFenStr = toFenStr;\n\n\n//# sourceURL=webpack://cchheess/./src/piece.ts?");
+
+/***/ }),
+
+/***/ "./src/pos.ts":
+/*!********************!*\
+  !*** ./src/pos.ts ***!
+  \********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.dopKey = exports.key = exports.rkey = exports.fkey = exports.mRankKey = exports.mFileKey = exports.mPosKey = exports.posKey2fKey = exports.posKey2rKey = exports.rByKey = exports.fByKey = exports.posKeys = exports.rankKeys = exports.fileKeys = exports.isPos = exports.mDirection = exports.isDirection = exports.directions = void 0;\nexports.directions = [1, 2, 3, 4, 5, 6, 7, 8];\nfunction isDirection(_) {\n    return !!mDirection(_);\n}\nexports.isDirection = isDirection;\nfunction mDirection(_) {\n    if (_ >= 1 && _ <= 8) {\n        return _;\n    }\n}\nexports.mDirection = mDirection;\nfunction isPos(_) {\n    if (Array.isArray(_)) {\n        if (_.length === 2) {\n            return _.map(isDirection).every(_ => !!_);\n        }\n    }\n    return false;\n}\nexports.isPos = isPos;\nexports.fileKeys = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];\nexports.rankKeys = ['1', '2', '3', '4', '5', '6', '7', '8'];\nexports.posKeys = [\n    'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8',\n    'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8',\n    'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8',\n    'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8',\n    'e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8',\n    'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8',\n    'g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8',\n    'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8'\n];\nconst fByKey = (_) => {\n    return exports.fileKeys.indexOf(_) + 1;\n};\nexports.fByKey = fByKey;\nconst rByKey = (_) => {\n    return exports.rankKeys.indexOf(_) + 1;\n};\nexports.rByKey = rByKey;\nconst posKey2rKey = (_) => {\n    return _[1];\n};\nexports.posKey2rKey = posKey2rKey;\nconst posKey2fKey = (_) => {\n    return _[0];\n};\nexports.posKey2fKey = posKey2fKey;\nconst mPosKey = (_) => {\n    if (exports.posKeys.includes(_)) {\n        let i = exports.posKeys.indexOf(_);\n        return exports.posKeys[i];\n    }\n};\nexports.mPosKey = mPosKey;\nfunction mFileKey(_) {\n    if (exports.fileKeys.includes(_)) {\n        let i = exports.fileKeys.indexOf(_);\n        return exports.fileKeys[i];\n    }\n}\nexports.mFileKey = mFileKey;\nfunction mRankKey(_) {\n    if (exports.rankKeys.includes(_)) {\n        let i = exports.rankKeys.indexOf(_);\n        return exports.rankKeys[i];\n    }\n}\nexports.mRankKey = mRankKey;\nfunction fkey(f) {\n    return exports.fileKeys[f - 1];\n}\nexports.fkey = fkey;\nfunction rkey(r) {\n    return exports.rankKeys[r - 1];\n}\nexports.rkey = rkey;\nfunction key(p) {\n    return (fkey(p[0]) + rkey(p[1]));\n}\nexports.key = key;\nfunction dopKey(_) {\n    if (isPos(_)) {\n        return key(_);\n    }\n    else if (isDirection(_)) {\n        return rkey(_);\n    }\n    else {\n        return 'dopX';\n    }\n}\nexports.dopKey = dopKey;\n\n\n//# sourceURL=webpack://cchheess/./src/pos.ts?");
+
+/***/ }),
+
+/***/ "./src/role.ts":
+/*!*********************!*\
+  !*** ./src/role.ts ***!
+  \*********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.otherColor = exports.mColor = exports.mRole = exports.isRole = void 0;\nfunction isRole(_) {\n    return !mRole(_);\n}\nexports.isRole = isRole;\nlet roles = ['r', 'b', 'n', 'q', 'k', 'p'];\nfunction mRole(str) {\n    let _ = str.toLowerCase();\n    if (roles.includes(_)) {\n        return _;\n    }\n}\nexports.mRole = mRole;\nfunction mColor(str) {\n    let _ = str.toLowerCase();\n    if (roles.includes(_)) {\n        if (_ === str) {\n            return 'b';\n        }\n        else {\n            return 'w';\n        }\n    }\n}\nexports.mColor = mColor;\nfunction otherColor(color) {\n    return color === 'w' ? 'b' : 'w';\n}\nexports.otherColor = otherColor;\n\n\n//# sourceURL=webpack://cchheess/./src/role.ts?");
+
+/***/ }),
+
+/***/ "./src/san.ts":
+/*!********************!*\
+  !*** ./src/san.ts ***!
+  \********************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.san2san2 = exports.isSan2 = exports.san2meta = exports.sBool = exports.str2meta = void 0;\nconst p = __importStar(__webpack_require__(/*! ./pos */ \"./src/pos.ts\"));\nconst r = __importStar(__webpack_require__(/*! ./role */ \"./src/role.ts\"));\nconst db2 = __importStar(__webpack_require__(/*! ./db2 */ \"./src/db2.ts\"));\nlet { poss } = db2;\nfunction str2meta(str) {\n    if (!isSan2(str)) {\n        let str2 = san2san2(str);\n        if (str2) {\n            return san2meta(str2);\n        }\n    }\n    else {\n        return san2meta(str);\n    }\n}\nexports.str2meta = str2meta;\nfunction sBool(str) {\n    if (str === '') {\n        return false;\n    }\n    return true;\n}\nexports.sBool = sBool;\nfunction san2meta(san2) {\n    let res = san2.split(' ');\n    let [roleS, fileS, rankS, captureS, toS, promotionS, checkS, mateS] = res;\n    let mate = sBool(mateS), check = sBool(checkS), capture = sBool(captureS), mRankKey = p.mRankKey(rankS), mFileKey = p.mFileKey(fileS);\n    let rank = mRankKey ? p.rByKey(mRankKey) : undefined;\n    let file = mFileKey ? p.fByKey(mFileKey) : undefined;\n    let mrole = r.mRole(roleS), promotion = r.mRole(promotionS);\n    let mToKey = p.mPosKey(toS);\n    if (mToKey) {\n        let toFKey = p.posKey2fKey(mToKey), toRKey = p.posKey2rKey(mToKey), toF = p.fByKey(toFKey), toR = p.rByKey(toRKey), to = poss.pget(toF, toR);\n        if (to) {\n            return {\n                file,\n                rank,\n                check,\n                mate,\n                capture,\n                promotion,\n                to,\n                role: mrole ? mrole : 'p'\n            };\n        }\n    }\n}\nexports.san2meta = san2meta;\nfunction isSan2(str) {\n    let res = str.split(' ');\n    if (res.length === 8) {\n        let [role, file, rank, capture, to, promotion, check, mate] = res;\n        let RES = [/N|B|R|Q|K|/,\n            /[a-h]?/,\n            /([1-8]?)/,\n            /(x?)/,\n            /([a-h][0-9])/,\n            /(=?[NBRQ]?)/,\n            /(\\+?)/,\n            /(\\#?)/];\n        for (let key in RES) {\n            if (!res[key].match(RES[key])) {\n                return false;\n            }\n        }\n        return true;\n    }\n    else {\n        return false;\n    }\n}\nexports.isSan2 = isSan2;\nfunction san2san2(san) {\n    let RE = /(N|B|R|Q|K|)([a-h]?)([1-8]?)(x?)([a-h][0-9])(=?[NBRQ]?)(\\+?)(\\#?)/;\n    let m = san.match(RE);\n    if (m) {\n        let [_, role, file, rank, capture, to, promotion, check, mate] = m;\n        let res = [role, file, rank, capture, to, promotion, check, mate].join(' ');\n        return res;\n    }\n}\nexports.san2san2 = san2san2;\n\n\n//# sourceURL=webpack://cchheess/./src/san.ts?");
+
+/***/ }),
+
+/***/ "./src/sanitizes.ts":
+/*!**************************!*\
+  !*** ./src/sanitizes.ts ***!
+  \**************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.SanitizedSpace2 = exports.Sanitizes = exports.sanitizedU = exports.sanitized = exports.Sanitized = void 0;\nconst isequal_1 = __webpack_require__(/*! ./isequal */ \"./src/isequal.ts\");\nvar Sanitized;\n(function (Sanitized) {\n})(Sanitized = exports.Sanitized || (exports.Sanitized = {}));\nconst sanitized = (szer, cb) => (...args) => szer.get(cb(...args));\nexports.sanitized = sanitized;\nconst sanitizedU = (szer, cb) => (a, ...args) => {\n    let _a = cb(a, ...args);\n    if (_a) {\n        return szer.get(_a);\n    }\n};\nexports.sanitizedU = sanitizedU;\nclass Sanitizes {\n    constructor() {\n        this.world = [];\n    }\n    query(a) {\n        return this.world.filter(_ => {\n            return isequal_1.mapmatch(_, a);\n        });\n    }\n    get(a) {\n        let _a = this.world.find(_ => isequal_1.isEqualAny(a, _));\n        if (_a) {\n            return _a;\n        }\n        else {\n            this.world.push(a);\n            return a;\n        }\n    }\n}\nexports.Sanitizes = Sanitizes;\nclass SanitizedSpace2 {\n    constructor(make, mA, mB) {\n        this.make = make;\n        this.mA = mA;\n        this.mB = mB;\n        this.space = new Sanitizes();\n    }\n    query(mc) {\n        return this.space.query(mc);\n    }\n    get(c) {\n        return this.space.get(c);\n    }\n    pget(a, b) {\n        return this.space.get(this.make(a, b));\n    }\n    nget(sa, sb) {\n        return this.mget(this.mA(sa), this.mB(sb));\n    }\n    mget(ma, mb) {\n        if (ma && mb) {\n            return this.pget(ma, mb);\n        }\n    }\n}\nexports.SanitizedSpace2 = SanitizedSpace2;\n\n\n//# sourceURL=webpack://cchheess/./src/sanitizes.ts?");
+
+/***/ }),
+
+/***/ "./src/sss.ts":
+/*!********************!*\
+  !*** ./src/sss.ts ***!
+  \********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.union = void 0;\nfunction union(setA, setB) {\n    let _union = new Set(setA);\n    for (let elem of setB) {\n        _union.add(elem);\n    }\n    return _union;\n}\nexports.union = union;\n\n\n//# sourceURL=webpack://cchheess/./src/sss.ts?");
+
+/***/ }),
+
+/***/ "./src/test/_util.ts":
+/*!***************************!*\
+  !*** ./src/test/_util.ts ***!
+  \***************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util2_1 = __webpack_require__(/*! ./util2 */ \"./src/test/util2.ts\");\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst sz = __importStar(__webpack_require__(/*! ../sanitizes */ \"./src/sanitizes.ts\"));\nconst isequal_1 = __webpack_require__(/*! ../isequal */ \"./src/isequal.ts\");\nfunction default_1() {\n    util_1.it('tests equality', () => {\n        util_1.nac('3 4', !isequal_1.isEqualAny(3, 4));\n        util_1.nac('p equal', isequal_1.mapmatch({\n            a: '1',\n            b: '2',\n            c: '3'\n        }, { a: '1', b: '*', c: '*' }));\n    });\n    util_1.it.only('sanitizes numbers', () => {\n        let dirs = new sz.Sanitizes();\n        util_1.nacc('san 3 3', dirs.get(3), dirs.get(3));\n        util_1.nac('san 3 4', dirs.get(3) !== dirs.get(4));\n    });\n    util_1.it('sanitizes arrays', () => {\n        let poss = new sz.Sanitizes();\n        let a = [3];\n        util_1.nac(`returns same type`, util2_1.deepeq(poss.get(a), [3]));\n        util_1.nac('san [3] [3]', poss.get([3]) === a);\n        util_1.nac('san [3] [4]', poss.get([4]) !== a);\n    });\n    util_1.it('sanitizes maps', () => {\n        let boards = new sz.Sanitizes();\n        let thr = [3], four = [4];\n        let exp = new Map();\n        exp.set(thr, \"three\");\n        let m = new Map();\n        m.set(thr, \"three\");\n        util_1.nac(`returns same type`, util2_1.deepeq(boards.get(m), exp));\n        m.set(four, \"four\");\n        exp.set(four, \"four\");\n        util_1.nac(`returns ref equal`, boards.get(exp) === m);\n    });\n    util_1.it('sanitizes objects', () => {\n        let boards = new sz.Sanitizes();\n        let a = {\n            role: 'b',\n            color: 'w'\n        };\n        let b = {\n            role: 'b',\n            color: 'w'\n        };\n        util_1.nac('ref equal', boards.get(a) === a);\n        util_1.nac('a b', boards.get(b) === a);\n    });\n    function key2pos(key) {\n        return {\n            file: key[0],\n            rank: key[1]\n        };\n    }\n    let poss = new sz.Sanitizes();\n    let boards = new sz.Sanitizes();\n    util_1.it('queries objects', () => {\n        ['a1', 'b1', 'c1', 'a2', 'a3'].forEach(_ => {\n            poss.get(key2pos(_));\n        });\n        let res = poss.query({\n            file: 'a',\n            rank: '*'\n        });\n        let afiles = ['a1', 'a2', 'a3'].map(key2pos);\n        util_1.nac('a file', util2_1.deepeq(res, afiles));\n    });\n    util_1.it(\"queries nested objects\", () => {\n        ['a1', 'b1', 'c1', 'a2', 'a3'].forEach(_ => {\n            let p = poss.get(key2pos(_));\n            let p2 = poss.get(key2pos(_));\n            boards.get({\n                p1: p,\n                p2\n            });\n        });\n        let res2 = boards.query({\n            p1: poss.query({\n                file: \"c\",\n                rank: \"*\"\n            }),\n            p2: \"*\"\n        });\n        console.log(res2);\n    });\n}\nexports.default = default_1;\n\n\n//# sourceURL=webpack://cchheess/./src/test/_util.ts?");
+
+/***/ }),
+
+/***/ "./src/test/actor.ts":
+/*!***************************!*\
+  !*** ./src/test/actor.ts ***!
+  \***************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util2_1 = __webpack_require__(/*! ./util2 */ \"./src/test/util2.ts\");\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst db2 = __importStar(__webpack_require__(/*! ../db2 */ \"./src/db2.ts\"));\nconst a = __importStar(__webpack_require__(/*! ../actor */ \"./src/actor.ts\"));\nconst f = __importStar(__webpack_require__(/*! ../fen */ \"./src/fen.ts\"));\nlet { poss, pieces } = db2;\nfunction default_1() {\n    let initialSituation = f.situation('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');\n    let { board, turn } = initialSituation;\n    util_1.it('makes moves', () => {\n        let pos = poss.nget(2, 2);\n        let piece = pieces.nget('P', 'P');\n        let res = a.moves({\n            board,\n            piece,\n            pos\n        });\n        util_1.nac('moves', !util2_1.deepeq(res, []));\n    });\n}\nexports.default = default_1;\n\n\n//# sourceURL=webpack://cchheess/./src/test/actor.ts?");
+
+/***/ }),
+
+/***/ "./src/test/calcutes.ts":
+/*!******************************!*\
+  !*** ./src/test/calcutes.ts ***!
+  \******************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst cz = __importStar(__webpack_require__(/*! ../calculates */ \"./src/calculates.ts\"));\nfunction default_1() {\n    const pkey = (str) => ({\n        file: str[0],\n        rank: str[1]\n    });\n    util_1.it('calculates lazy vals', () => {\n        let ci = 0;\n        let sums = new cz.Calculates(pos => {\n            ci++;\n            return {\n                fandr: pos.rank + pos.file\n            };\n        });\n        let poss = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3', 'c5']\n            .map(pkey);\n        let res = sums.querz(poss, {\n            fandr: \"1a\"\n        });\n        util_1.nacc('called once', ci, poss.length);\n        sums.querz(poss, {\n            fandr: \"1a\"\n        });\n        util_1.nacc('called once', ci, poss.length);\n    });\n}\nexports.default = default_1;\n\n\n//# sourceURL=webpack://cchheess/./src/test/calcutes.ts?");
+
+/***/ }),
+
+/***/ "./src/test/core.ts":
+/*!**************************!*\
+  !*** ./src/test/core.ts ***!
+  \**************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst util2_1 = __webpack_require__(/*! ./util2 */ \"./src/test/util2.ts\");\nconst f = __importStar(__webpack_require__(/*! ../fen */ \"./src/fen.ts\"));\nconst s = __importStar(__webpack_require__(/*! ../san */ \"./src/san.ts\"));\nconst db2 = __importStar(__webpack_require__(/*! ../db2 */ \"./src/db2.ts\"));\nlet { poss } = db2;\nfunction default_1() {\n    util_1.it('validates san', () => {\n        util_1.nac('Nf6', s.str2meta('Nf6'));\n        util_1.nac('e4', s.str2meta('e4'));\n    });\n    util_1.it('finds positions', () => {\n        util_1.nac('1 1', util2_1.deepeq(poss.nget(1, 1), [1, 1]));\n        util_1.nac('1 8', util2_1.deepeq(poss.nget(1, 8), [1, 8]));\n        util_1.nac('1 10', util2_1.deepeq(poss.nget(1, 10), undefined));\n    });\n    util_1.it('creates board', () => {\n        const situation = f.situation('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');\n        if (!situation) {\n            return '! situation';\n        }\n        let { board } = situation;\n        util_1.nacc('32 pieces', board.size, 32);\n        util_1.qed('w p at 2 2', board.get(poss.nget(2, 2) || {}), { role: 'p', color: 'w' });\n    });\n    // console.log(s.san2meta('Nbe4+'));\n}\nexports.default = default_1;\n\n\n//# sourceURL=webpack://cchheess/./src/test/core.ts?");
+
+/***/ }),
+
+/***/ "./src/test/direction.ts":
+/*!*******************************!*\
+  !*** ./src/test/direction.ts ***!
+  \*******************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst util2_1 = __webpack_require__(/*! ./util2 */ \"./src/test/util2.ts\");\nconst dir = __importStar(__webpack_require__(/*! ../direction */ \"./src/direction.ts\"));\nconst dt = __importStar(__webpack_require__(/*! ../dtypes */ \"./src/dtypes.ts\"));\nconst p = __importStar(__webpack_require__(/*! ../pos */ \"./src/pos.ts\"));\nconst v = __importStar(__webpack_require__(/*! ../visual */ \"./src/visual.ts\"));\nconst db2 = __importStar(__webpack_require__(/*! ../db2 */ \"./src/db2.ts\"));\nfunction pos(f, r) {\n    let d = 1;\n    return db2.poss.pget(p.mDirection(f) || d, p.mDirection(r) || d);\n}\nfunction default_1() {\n    util_1.it('displaces on 0 direction', () => {\n        let t = [[-8, 1, undefined],\n            [-1, 1, undefined],\n            [8, 3, undefined],\n            [7, 1, 8],\n            [1, 3, 4]];\n        t.forEach(([di, d, res]) => {\n            let _d = dir.ddir0(di, d);\n            util_1.nacc(` ${di} ${d} != `, _d, res);\n        });\n    });\n    util_1.it('displaces on position', () => {\n        let t = [[[0, 0], pos(1, 1), pos(1, 1)],\n            [[1, 0], pos(1, 1), pos(2, 1)],\n            [[4, -3], pos(4, 4), pos(8, 1)],\n            [[-1, 0], pos(1, 1), undefined],\n            [[-5, 7], pos(1, 1), undefined]\n        ];\n        t.forEach(([d1, _p, res]) => {\n            let _d = dir.ddir1(d1, _p);\n            if (res && _d) {\n                util_1.nacc(`expected ${p.key(res)} got ${p.key(_d)}`, res, _d);\n            }\n            else if (!res && !_d) {\n            }\n            else if (!res && _d) {\n                util_1.cry(`expected undefined got ${p.key(_d)}`);\n            }\n            else if (!_d && res) {\n                util_1.cry(`expected ${p.key(res)} got undefined`);\n            }\n        });\n    });\n    util_1.it('displaces displace2', () => {\n        let t = [[dt.DKnight, pos(1, 1), new Set([\n                    pos(3, 2),\n                    pos(2, 3)\n                ])], [\n                dt.DKnight, pos(4, 4), new Set([\n                    pos(5, 6), pos(5, 2),\n                    pos(3, 6), pos(3, 2),\n                    pos(6, 5), pos(6, 3),\n                    pos(2, 5), pos(2, 3)\n                ])\n            ]];\n        t.forEach(([d2, _p, expected]) => {\n            let got = dir.ddir2(d2, _p);\n            util_1.nac(`got ${v.str(got)} != expected ${v.str(expected)}`, util2_1.deepeq(got, expected));\n        });\n    });\n    util_1.it('routes for direction', () => {\n        let t = [\n            [0, 1, [1]],\n            [1, 1, [1, 2, 3, 4, 5, 6, 7, 8]],\n            [-1, 4, [4, 3, 2, 1]]\n        ];\n        t.forEach(([d0, _d, expected]) => {\n            let got = dir.rroute0(d0, _d);\n            util_1.nac(`got ${v.str(got)} !== expected ${v.str(expected)}`, util2_1.deepeq(got, expected));\n        });\n    });\n    // [0,1] [1,6]\n    // [1]\n    // [6,7,8]\n    // [1,6] [1,7] [1,8]\n    // [2,1] [1,6]\n    // [1,3,5,7]\n    // [6,7,8]\n    // [1,6] [3,7] [5,8]\n    util_1.it('routes for position', () => {\n        let t = [\n            [[0, 0], pos(1, 1), [pos(1, 1)]],\n            [[0, 1], pos(1, 6), [pos(1, 6), pos(1, 7), pos(1, 8)]],\n            [[1, 1], pos(4, 5), [pos(4, 5), pos(5, 6), pos(6, 7), pos(7, 8)]],\n            [[-2, 1], pos(4, 5), [pos(4, 5), pos(2, 6)]]\n        ];\n        t.forEach(([d1, _p, expected]) => {\n            let got = dir.rroute1(d1, _p);\n            util_1.nac(`got ${v.str(got)} !== expected ${v.str(expected)}`, util2_1.deepeq(got, expected));\n        });\n    });\n}\nexports.default = default_1;\n\n\n//# sourceURL=webpack://cchheess/./src/test/direction.ts?");
+
+/***/ }),
+
+/***/ "./src/test/fen.ts":
+/*!*************************!*\
+  !*** ./src/test/fen.ts ***!
+  \*************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst db2 = __importStar(__webpack_require__(/*! ../db2 */ \"./src/db2.ts\"));\nconst f = __importStar(__webpack_require__(/*! ../fen */ \"./src/fen.ts\"));\nfunction default_1() {\n    let fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';\n    let situation = f.situation(fen);\n    let d1 = db2.poss.nget(4, 1);\n    let wQ = { role: 'q', color: 'w' };\n    let wP = { role: 'p', color: 'w' };\n    util_1.it('fen', () => {\n        let d1Q = situation.board.get(d1);\n        util_1.qed('d1 Q', d1Q, wQ);\n        util_1.qed('same fen', f.fen(situation), fen);\n    });\n}\nexports.default = default_1;\n\n\n//# sourceURL=webpack://cchheess/./src/test/fen.ts?");
+
+/***/ }),
+
+/***/ "./src/test/history.ts":
+/*!*****************************!*\
+  !*** ./src/test/history.ts ***!
+  \*****************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst san_1 = __webpack_require__(/*! ../san */ \"./src/san.ts\");\nconst f = __importStar(__webpack_require__(/*! ../fen */ \"./src/fen.ts\"));\nconst h = __importStar(__webpack_require__(/*! ../history */ \"./src/history.ts\"));\nconst m = __importStar(__webpack_require__(/*! ../move */ \"./src/move.ts\"));\nfunction default_1() {\n    let situation = f.situation('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');\n    let e4 = san_1.str2meta('e4');\n    let e5 = san_1.str2meta('e5');\n    let a6 = san_1.str2meta('a6');\n    let wP = { role: 'p', color: 'w' };\n    util_1.it('history', () => {\n        let first = h.first(situation, e4);\n        if (!first) {\n            return '! 1. e4';\n        }\n        util_1.qed('1 move', first.length, 1);\n        util_1.qed('1. e4', f.fen(m.situationAfter(first[0])), 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1');\n        let twoA6 = h.add(first, a6);\n        if (!twoA6) {\n            return '! 2. a6';\n        }\n        util_1.qed('2 move', twoA6.length, 2);\n        util_1.qed('1. e4 a6', f.fen(m.situationAfter(twoA6[1])), 'rnbqkbnr/1ppppppp/p7/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1');\n        let threeE5 = h.add(twoA6, e5);\n        if (!threeE5) {\n            return '! 2. a6';\n        }\n        util_1.qed('2 move', threeE5.length, 3);\n        util_1.qed('1. e4 a6 2. e5', f.fen(m.situationAfter(threeE5[2])), 'rnbqkbnr/1ppppppp/p7/4P3/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1');\n    });\n    util_1.it.only('makes moves', () => {\n        let seed = undefined;\n        let hfinal = 'e4 a5 Nf3 Nf6 g3 g6 e5 a4'.split(' ')\n            .map(_ => san_1.str2meta(_)).reduce((acc, _) => {\n            if (!acc) {\n                return h.first(situation, _);\n            }\n            else {\n                return h.add(acc, _);\n            }\n        }, seed);\n        if (!hfinal) {\n            return '! no history';\n        }\n        util_1.qed('8 moves', hfinal.length, 8);\n        util_1.qed('correct ', f.fen(m.situationAfter(hfinal[7])), 'rnbqkb1r/1ppppp1p/5np1/4P3/p7/5NP1/PPPP1P1P/RNBQKB1R w KQkq - 0 1');\n    });\n}\nexports.default = default_1;\n\n\n//# sourceURL=webpack://cchheess/./src/test/history.ts?");
+
+/***/ }),
+
+/***/ "./src/test/index.ts":
+/*!***************************!*\
+  !*** ./src/test/index.ts ***!
+  \***************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __importDefault = (this && this.__importDefault) || function (mod) {\n    return (mod && mod.__esModule) ? mod : { \"default\": mod };\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst makes_1 = __importDefault(__webpack_require__(/*! ./makes */ \"./src/test/makes.ts\"));\nconst core_1 = __importDefault(__webpack_require__(/*! ./core */ \"./src/test/core.ts\"));\nconst _util_1 = __importDefault(__webpack_require__(/*! ./_util */ \"./src/test/_util.ts\"));\nconst line_1 = __importDefault(__webpack_require__(/*! ./line */ \"./src/test/line.ts\"));\nconst actor_1 = __importDefault(__webpack_require__(/*! ./actor */ \"./src/test/actor.ts\"));\nconst routes_1 = __importDefault(__webpack_require__(/*! ./routes */ \"./src/test/routes.ts\"));\nconst calcutes_1 = __importDefault(__webpack_require__(/*! ./calcutes */ \"./src/test/calcutes.ts\"));\nconst direction_1 = __importDefault(__webpack_require__(/*! ./direction */ \"./src/test/direction.ts\"));\nconst history_1 = __importDefault(__webpack_require__(/*! ./history */ \"./src/test/history.ts\"));\nconst fen_1 = __importDefault(__webpack_require__(/*! ./fen */ \"./src/test/fen.ts\"));\nconst move_1 = __importDefault(__webpack_require__(/*! ./move */ \"./src/test/move.ts\"));\nfunction default_1() {\n    util_1.tMo(makes_1.default);\n    util_1.tMo(direction_1.default);\n    util_1.tMo(_util_1.default);\n    util_1.tMo(core_1.default);\n    util_1.tMo(line_1.default);\n    util_1.tMo(calcutes_1.default);\n    util_1.tMo(routes_1.default);\n    util_1.tMo(move_1.default);\n    util_1.tMo(actor_1.default);\n    util_1.tMo.only(history_1.default);\n    util_1.tMo(fen_1.default);\n    util_1.run();\n}\nexports.default = default_1;\n\n\n//# sourceURL=webpack://cchheess/./src/test/index.ts?");
+
+/***/ }),
+
+/***/ "./src/test/line.ts":
+/*!**************************!*\
+  !*** ./src/test/line.ts ***!
+  \**************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst l = __importStar(__webpack_require__(/*! ../line */ \"./src/line.ts\"));\nfunction default_1() {\n    let ifen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';\n    util_1.it('makes ply', () => {\n        let res = l.fen('line0', 'fen');\n        util_1.nacc('invalid input', res, l.LineError.InvalidInput);\n        res = l.fen('line0', ifen);\n        util_1.nac('good fen', !res);\n        let pres = l.ply('line0', 1);\n        util_1.nacc('no move ply 1', pres, l.LineError.NoMoveFound);\n        pres = l.ply('line0', 0);\n        util_1.nacc('move ply 0', pres, ifen);\n        let apres = l.aply('line0', 0, 'san');\n        util_1.nacc('invalid input', apres, l.LineError.InvalidInput);\n        apres = l.aply('line0', 0, 'Nf6');\n        util_1.nacc('already set', apres, l.LineError.AlreadySet);\n        apres = l.aply('line0', 2, 'Nf6');\n        util_1.nacc('fen line no move found 2', apres, l.LineError.NoMoveFound);\n        apres = l.aply('line0', 1, 'e4');\n        util_1.nac('set san 1 ok', !apres);\n        apres = l.aply('line0', 1, 'Nf6');\n        util_1.nacc('already set ply 1', apres, l.LineError.AlreadySet);\n        apres = l.aply('line0', 2, 'e5');\n        util_1.nac('set san 2 ok', !apres);\n        apres = l.aply('line0', 2, 'e5');\n        util_1.nacc('already set ply 2', apres, l.LineError.AlreadySet);\n        apres = l.aply('line0', 3, 'e7');\n        util_1.nacc('cant make move e7', apres, l.LineError.CantMakeMove);\n    });\n    util_1.it('can make move', () => {\n        let res = l.fen('line3', ifen);\n        let apres = l.aply('line3', 1, 'e4');\n        util_1.qed('set san 1 ok', apres, undefined);\n        apres = l.aply('line3', 2, 'e5');\n        util_1.qed('set san 2 ok', apres, undefined);\n    });\n    util_1.it('cant make invalid moves', () => {\n        l.fen('line1', ifen);\n        util_1.qed('1. e6', l.aply('line1', 1, 'e6'), l.LineError.CantMakeMove);\n        util_1.qed('1. e4', l.aply('line1', 1, 'e4'), undefined);\n    });\n    util_1.it.only('plays a game', () => {\n        l.fen('lineg', ifen);\n        'e4 e5 g4 g6'.split(' ')\n            .forEach((_, i) => {\n            util_1.qed(`${i + 1}. ${_}`, l.aply('lineg', i + 1, _), undefined);\n        });\n    });\n}\nexports.default = default_1;\n\n\n//# sourceURL=webpack://cchheess/./src/test/line.ts?");
+
+/***/ }),
+
+/***/ "./src/test/makes.ts":
+/*!***************************!*\
+  !*** ./src/test/makes.ts ***!
+  \***************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst makes_1 = __webpack_require__(/*! ../makes */ \"./src/makes.ts\");\nvar ApiError;\n(function (ApiError) {\n    ApiError[\"BelowZero\"] = \"bz\";\n    ApiError[\"IsZero\"] = \"iz\";\n    ApiError[\"AboveZero\"] = \"az\";\n    ApiError[\"TooLong\"] = \"tl\";\n})(ApiError || (ApiError = {}));\nfunction isApiError(_) {\n    return Object.values(ApiError).includes(_);\n}\nfunction test() {\n    util_1.it('makes', () => {\n        let api = {\n            makeString(_) {\n                if (_ === 0) {\n                    return ApiError.IsZero;\n                }\n                else {\n                    return \"api\" + _;\n                }\n            },\n            addString(pre, _, o) {\n                if (pre.length > 5) {\n                    return ApiError.TooLong;\n                }\n                else {\n                    return pre + _;\n                }\n            },\n            getString(pre, _) {\n                return pre + _;\n            }\n        };\n        let m = new makes_1.Makes();\n        let buildNoZero = m.setter0(api.makeString, isApiError);\n        let addNumberUpto5 = m.setter1(api.addString, isApiError);\n        let returnValueAndNumber = m.getter1(api.getString);\n        util_1.nacc('build zero', buildNoZero('line3', 0), ApiError.IsZero);\n        buildNoZero('line3', 3);\n        util_1.nacc('make by value', returnValueAndNumber('line3', 9), 'api39');\n        util_1.nacc('make by value', buildNoZero('line3', 2), 'already set');\n        buildNoZero('line2', 4);\n        util_1.nacc('make by value', returnValueAndNumber('line2', 9), 'api49');\n        util_1.nacc('no line set', addNumberUpto5('line10', 4, 0), 'not set');\n        addNumberUpto5('line3', 4, 0);\n        util_1.nacc('yes line set', returnValueAndNumber('line3', 8), 'api348');\n        addNumberUpto5('line3', 5, 0);\n        util_1.nacc('too long', addNumberUpto5('line3', 4, 0), 'tl');\n        util_1.nacc('retvalnum', returnValueAndNumber('line3', 8), 'api3458');\n    });\n}\nexports.default = test;\n;\n\n\n//# sourceURL=webpack://cchheess/./src/test/makes.ts?");
+
+/***/ }),
+
+/***/ "./src/test/move.ts":
+/*!**************************!*\
+  !*** ./src/test/move.ts ***!
+  \**************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst san_1 = __webpack_require__(/*! ../san */ \"./src/san.ts\");\nconst f = __importStar(__webpack_require__(/*! ../fen */ \"./src/fen.ts\"));\nconst m = __importStar(__webpack_require__(/*! ../move */ \"./src/move.ts\"));\nfunction default_1() {\n    let situation = f.situation('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');\n    let e4 = san_1.str2meta('e4');\n    let wP = { role: 'p', color: 'w' };\n    util_1.it('actors', () => {\n        let oneE4 = m.get(situation, e4);\n        if (!oneE4) {\n            return '! 1. e4';\n        }\n        util_1.qed('1. e4', oneE4.piece, wP);\n        util_1.qed(\"b's turn\", m.situationAfter(oneE4).turn, \"b\");\n    });\n}\nexports.default = default_1;\n\n\n//# sourceURL=webpack://cchheess/./src/test/move.ts?");
+
+/***/ }),
+
+/***/ "./src/test/routes.ts":
+/*!****************************!*\
+  !*** ./src/test/routes.ts ***!
+  \****************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst util_1 = __webpack_require__(/*! ./util */ \"./src/test/util.ts\");\nconst p = __importStar(__webpack_require__(/*! ../pos */ \"./src/pos.ts\"));\nconst dt = __importStar(__webpack_require__(/*! ../dtypes */ \"./src/dtypes.ts\"));\nconst db2 = __importStar(__webpack_require__(/*! ../db2 */ \"./src/db2.ts\"));\nconst dir = __importStar(__webpack_require__(/*! ../direction */ \"./src/direction.ts\"));\nfunction default_1() {\n    let a1 = db2.poss.nget(1, 1);\n    let d4 = db2.poss.nget(4, 4);\n    util_1.it('gets route0', () => {\n        let r0dir = dir.rroute0(1, 7);\n        util_1.qed('r0 -1 1', r0dir, [7, 8]);\n        r0dir = dir.rroute0(-1, 2);\n        util_1.qed('r0 -1 1', r0dir, [2, 1]);\n    });\n    util_1.it('gets route1', () => {\n        let res = dir.rroute1([3, 3], a1);\n        util_1.qed('d [1 1] a1', res, [\n            [1, 1],\n            [4, 4],\n            [7, 7]\n        ]);\n        res = dir.rroute1([-1, 3], a1);\n        util_1.qed('d [-1 3] a1', res, [\n            [1, 1],\n        ]);\n        let resflat = dir.rrouteflat1(new Set([[-1, 3]]), a1);\n        util_1.qed('d [-1 3] a1', [...resflat], []);\n    });\n    util_1.it('route0 d4', () => {\n        let res = dir.rroute2(dt.DKnight, d4);\n        // console.log(res);\n    });\n    util_1.it('gets route2', () => {\n        let res = dir.rrouteflat1(dt.DKnight, d4);\n        util_1.qed('N@d4', [...res].map(p.dopKey), [\n            'f3', 'f5', 'b3', 'b5', 'c2', 'c6', 'e2', 'e6'\n        ]);\n    });\n}\nexports.default = default_1;\n\n\n//# sourceURL=webpack://cchheess/./src/test/routes.ts?");
+
+/***/ }),
+
+/***/ "./src/test/util.ts":
+/*!**************************!*\
+  !*** ./src/test/util.ts ***!
+  \**************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.qed = exports.nac = exports.nacc = exports.cry = exports.jss = exports.it = exports.runtests = exports.tMo = exports.run = void 0;\nconst util2_1 = __webpack_require__(/*! ./util2 */ \"./src/test/util2.ts\");\nfunction testFailed(t) {\n    console.log(`❌ ${t.msg} ${t.fail}`);\n}\nfunction testThrowed(t) {\n    console.log(`💀 ${t.msg} ${t.err}`);\n}\nfunction testBegin(t) {\n    console.log(`${t.msg}`);\n}\nlet tmos = [], onlytmos = [];\nlet onlyset = [];\nlet stset = [];\nfunction run() {\n    let _tmos = onlytmos.length > 0 ? onlytmos : tmos;\n    _tmos.forEach(_ => _());\n    runtests();\n}\nexports.run = run;\nexports.tMo = (() => {\n    let res = (fn) => {\n        tmos.push(fn);\n    };\n    res.only = (fn) => {\n        onlytmos.push(fn);\n    };\n    return res;\n})();\nfunction runtests() {\n    let errs = [];\n    let i = 0;\n    let testOnly = onlyset.length > 0 ? onlyset : stset;\n    testOnly.forEach(_ => {\n        try {\n            i++;\n            testBegin(_);\n            let msg = _.fn();\n            if (msg) {\n                _.fail = msg;\n            }\n        }\n        catch (e) {\n            _.err = e;\n        }\n    });\n    testOnly\n        .filter(_ => !!_.fail)\n        .forEach(testFailed);\n    testOnly\n        .filter(_ => !!_.err)\n        .forEach(testThrowed);\n    console.log(`done ${i}`);\n}\nexports.runtests = runtests;\nfunction it(msg, fn) {\n    let test = {\n        msg,\n        fn\n    };\n    stset.push(test);\n}\nexports.it = it;\nit.only = (msg, fn) => {\n    let test = {\n        msg,\n        fn\n    };\n    onlyset.push(test);\n};\nfunction jss(o, msg) {\n    console.log(JSON.stringify(o), msg);\n}\nexports.jss = jss;\nfunction cry(msg, o) {\n    let oS = JSON.stringify(o);\n    console.log(`❌ ${msg} ` + oS);\n}\nexports.cry = cry;\nfunction nacc(msg, a, b) {\n    if (a !== b) {\n        cry(`${msg} got`, a);\n    }\n}\nexports.nacc = nacc;\nfunction nac(msg, a) {\n    if (!a) {\n        cry(msg);\n    }\n}\nexports.nac = nac;\nfunction qed(msg, a, b) {\n    if (!util2_1.deepeq(a, b)) {\n        cry(`${msg} got`, a);\n    }\n}\nexports.qed = qed;\n\n\n//# sourceURL=webpack://cchheess/./src/test/util.ts?");
+
+/***/ }),
+
+/***/ "./src/test/util2.ts":
+/*!***************************!*\
+  !*** ./src/test/util2.ts ***!
+  \***************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.arreq = exports.seteq = exports.deepeq = void 0;\nfunction deepeq(a, b) {\n    if (Array.isArray(a) && Array.isArray(b)) {\n        return arreq(a, b);\n    }\n    else if (a instanceof Set && b instanceof Set) {\n        return seteq(a, b);\n    }\n    else if (typeof a === 'object' && typeof b === 'object') {\n        for (let key in a) {\n            if (!deepeq(a[key], b[key])) {\n                return false;\n            }\n        }\n        for (let key in b) {\n            if (!deepeq(a[key], b[key])) {\n                return false;\n            }\n        }\n        return true;\n    }\n    else {\n        return a === b;\n    }\n}\nexports.deepeq = deepeq;\nfunction seteq(a, b) {\n    if (a.size !== b.size) {\n        return false;\n    }\n    for (let item of a) {\n        let found = false;\n        for (let item2 of b) {\n            if (deepeq(item, item2)) {\n                found = true;\n                break;\n            }\n        }\n        if (!found) {\n            return false;\n        }\n    }\n    return true;\n}\nexports.seteq = seteq;\nfunction arreq(a, b) {\n    if (a.length !== b.length) {\n        return false;\n    }\n    for (let i in a) {\n        if (!b.some(_ => deepeq(_, a[i]))) {\n            return false;\n        }\n    }\n    return true;\n}\nexports.arreq = arreq;\n\n\n//# sourceURL=webpack://cchheess/./src/test/util2.ts?");
+
+/***/ }),
+
+/***/ "./src/types.ts":
+/*!**********************!*\
+  !*** ./src/types.ts ***!
+  \**********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.isMoveLine = exports.isFenLine = void 0;\nfunction isFenLine(_) {\n    return !(isMoveLine(_));\n}\nexports.isFenLine = isFenLine;\nfunction isMoveLine(_) {\n    return (_.parent !== undefined);\n}\nexports.isMoveLine = isMoveLine;\n\n\n//# sourceURL=webpack://cchheess/./src/types.ts?");
+
+/***/ }),
+
+/***/ "./src/util.ts":
+/*!*********************!*\
+  !*** ./src/util.ts ***!
+  \*********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.seqable = exports.seqMaybe = void 0;\nfunction seqMaybe(a, fn, ...args) {\n    return a ? fn(a, ...args) : undefined;\n}\nexports.seqMaybe = seqMaybe;\nconst seqable = (cb) => (x, ...args) => typeof x === \"undefined\" ? undefined : cb(x, ...args);\nexports.seqable = seqable;\n\n\n//# sourceURL=webpack://cchheess/./src/util.ts?");
+
+/***/ }),
+
+/***/ "./src/visual.ts":
+/*!***********************!*\
+  !*** ./src/visual.ts ***!
+  \***********************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+eval("\nvar __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });\n}) : (function(o, m, k, k2) {\n    if (k2 === undefined) k2 = k;\n    o[k2] = m[k];\n}));\nvar __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {\n    Object.defineProperty(o, \"default\", { enumerable: true, value: v });\n}) : function(o, v) {\n    o[\"default\"] = v;\n});\nvar __importStar = (this && this.__importStar) || function (mod) {\n    if (mod && mod.__esModule) return mod;\n    var result = {};\n    if (mod != null) for (var k in mod) if (k !== \"default\" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);\n    __setModuleDefault(result, mod);\n    return result;\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.str = void 0;\nconst dir = __importStar(__webpack_require__(/*! ./direction */ \"./src/direction.ts\"));\nconst p = __importStar(__webpack_require__(/*! ./pos */ \"./src/pos.ts\"));\nconst fa = p.dopKey;\nfunction str(a) {\n    if (dir.isRoute0(a)) {\n        return '<R0 ' + a.map(_ => fa(_)).join(' ') + '>';\n    }\n    else if (dir.isRoute1(a)) {\n        return '<R1 ' + a.map(_ => str(_)).join(' ') + '>';\n    }\n    else if (a instanceof Set) {\n        return '{' + [...a].map(_ => fa(_)).join(' ') + '}';\n    }\n    else if (Array.isArray(a)) {\n        if (a.length === 0) {\n            return '[]';\n        }\n        else if (Array.isArray(a[0])) {\n        }\n        else\n            return '[' + a.map(_ => fa(_)).join(' ') + ']';\n    }\n    return 'unknown';\n}\nexports.str = str;\n\n\n//# sourceURL=webpack://cchheess/./src/visual.ts?");
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __webpack_require__("./src/test/index.ts");
+/******/ 	
+/******/ })()
 ;
-let {
-  pieces,
-  poss
-} = db2;
-let {
-  actors,
-  boards
-} = db;
-
-function fen(situation) {
-  let color = situation.turn;
-  let rest = "KQkq - 0 1";
-  return `${b.fen(situation.board)} ${color} ${rest}`;
-}
-
-exports.fen = fen;
-exports.situation = sz.sanitized(db.situations, _situation);
-
-function _situation(fen) {
-  let _pieces = new Map();
-
-  let [ranksS, colorS] = fen.split(' ');
-
-  if (!ranksS || !colorS) {
-    return;
-  }
-
-  if (colorS !== "w" && colorS !== "b") {
-    return;
-  }
-
-  let ranks = ranksS.split('/');
-
-  if (ranks.length !== 8) {
-    return;
-  }
-
-  for (let i = 0; i < ranks.length; i++) {
-    let rank = 8 - i;
-    let file = 1;
-
-    for (let j = 0; j < ranks[i].length; j++) {
-      let c = ranks[i][j];
-      let piece = pieces.nget(c, c);
-
-      if (piece) {
-        let pos = poss.nget(file, rank);
-
-        if (pos && piece) {
-          _pieces.set(pos, piece);
-        }
-
-        file += 1;
-      } else {
-        let _s = space(c);
-
-        if (_s) {
-          file += _s;
-        }
-      }
-    }
-  }
-
-  let board = boards.get(_pieces);
-
-  for (let [pos, piece] of _pieces.entries()) {
-    actors.get({
-      pos,
-      piece,
-      board
-    });
-  }
-
-  ;
-  return {
-    board,
-    turn: colorS
-  };
-}
-
-function space(c) {
-  if (c.match(/[1-8]/)) {
-    return parseInt(c);
-  }
-}
-
-exports.space = space;
-"use strict";
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.add = exports.first = void 0;
-
-const db_1 = require("./db");
-
-const m = __importStar(require("./move"));
-
-const db = __importStar(require("./db"));
-
-const u = __importStar(require("./util"));
-
-const sz = __importStar(require("./sanitizes"));
-
-function first(position, sanMeta) {
-  let move = m.get(position, sanMeta);
-
-  if (move) {
-    return db_1.histories.get([move]);
-  }
-}
-
-exports.first = first;
-exports.add = sz.sanitizedU(db.histories, u.seqable(_add));
-
-function _add(history, sanMeta) {
-  let lastMove = history[history.length - 1];
-  let move = m.get(m.situationAfter(lastMove), sanMeta);
-
-  if (move) {
-    return db_1.histories.get([...history, move]);
-  }
-}
-"use strict";
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.objPEqual = exports.refPEqual2 = exports.objEqual = exports.mapEqual = exports.refEqual2 = exports.refEqual = exports.isEqualAny = exports.match = exports.mapmatch = void 0;
-
-function mapmatch(a, m) {
-  if (m === '*') {
-    return true;
-  } else if (Array.isArray(a) && Array.isArray(m)) {
-    return exports.refPEqual2(a, m);
-  } else {
-    return exports.objPEqual(a, m);
-  }
-}
-
-exports.mapmatch = mapmatch;
-
-function match(a, m) {
-  if (m === "*") {
-    return true;
-  } else if (Array.isArray(m)) {
-    return m.includes(a);
-  } else {
-    return a === m;
-  }
-}
-
-exports.match = match;
-
-const isEqualAny = (a, b) => {
-  if (a === b) return true;
-  if (Array.isArray(a) && Array.isArray(b)) return exports.refEqual2(a, b);
-  if (a instanceof Map && b instanceof Map) return exports.mapEqual(a, b);else {
-    return exports.objEqual(a, b);
-  }
-};
-
-exports.isEqualAny = isEqualAny;
-
-const refEqual = (a, b) => a === b;
-
-exports.refEqual = refEqual;
-
-const refEqual2 = (a, b) => {
-  if (a.length === b.length) {
-    for (let key in a) {
-      if (a[key] !== b[key]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  return false;
-};
-
-exports.refEqual2 = refEqual2;
-
-const mapEqual = (a, b) => {
-  if (a.size !== b.size) {
-    return false;
-  }
-
-  for (var [key, _a] of a) {
-    let _b = b.get(key);
-
-    if (_a !== _b || _b === undefined && !a.has(key)) {
-      return false;
-    }
-  }
-
-  return true;
-};
-
-exports.mapEqual = mapEqual;
-
-const objEqual = (a, b) => {
-  if (typeof a === 'object' && typeof b === 'object') {
-    if (Object.keys(a).length !== Object.keys(b).length) {
-      return false;
-    }
-
-    for (let key in a) {
-      if (a[key] !== b[key]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  return false;
-};
-
-exports.objEqual = objEqual;
-
-const refPEqual2 = (a, b) => {
-  for (let key in b) {
-    if (!match(a[key], b[key])) {
-      return false;
-    }
-  }
-
-  return true;
-};
-
-exports.refPEqual2 = refPEqual2;
-
-const objPEqual = (a, b) => {
-  if (typeof a === 'object' && typeof b === 'object') {
-    for (let key in b) {
-      if (!match(a[key], b[key])) {
-        return false;
-      }
-    }
-
-    return true;
-  } else {
-    return false;
-  }
-};
-
-exports.objPEqual = objPEqual;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.aply = exports.ply = exports.fen = exports.isLineError = exports.LineError = void 0;
-
-const ct = __importStar(require("./types"));
-
-const makes_1 = require("./makes");
-
-const f = __importStar(require("./fen"));
-
-const sanApi = __importStar(require("./san"));
-
-const hApi = __importStar(require("./history"));
-
-const db = __importStar(require("./db"));
-
-function fenLineFirstPly(parent, sanMeta) {
-  let _h1 = hApi.first(parent, sanMeta);
-
-  if (_h1) {
-    return db.lines.get({
-      parent,
-      history: _h1
-    });
-  } else {
-    return LineError.CantMakeMove;
-  }
-}
-
-function moveLineNewPly({
-  parent,
-  history
-}, ply, sanMeta) {
-  if (history.length < ply - 1) {
-    return LineError.NoMoveFound;
-  } else if (history.length > ply - 1) {
-    return LineError.AlreadySet;
-  } else {
-    let _h2 = hApi.add(history, sanMeta);
-
-    if (_h2) {
-      return db.lines.get({
-        parent,
-        history: _h2
-      });
-    } else {
-      return LineError.CantMakeMove;
-    }
-  }
-}
-
-var LineError;
-
-(function (LineError) {
-  LineError["AlreadySet"] = "Already Set";
-  LineError["InvalidInput"] = "Invalid Input";
-  LineError["NoMoveFound"] = "No Move Found";
-  LineError["CantMakeMove"] = "Cant Make Move";
-})(LineError = exports.LineError || (exports.LineError = {}));
-
-function isLineError(_) {
-  return Object.values(LineError).includes(_);
-}
-
-exports.isLineError = isLineError;
-
-function _fen(fen) {
-  let sit = f.situation(fen);
-
-  if (sit) {
-    return sit;
-  } else {
-    return LineError.InvalidInput;
-  }
-}
-
-function _ply(line, ply) {
-  if (ply === 0) {
-    if (ct.isFenLine(line)) {
-      return f.fen(line);
-    }
-  }
-
-  return LineError.NoMoveFound;
-}
-
-function _aply(line, ply, move) {
-  let _sanMeta = sanApi.str2meta(move);
-
-  if (_sanMeta) {
-    if (ply === 0) {
-      return LineError.AlreadySet;
-    } else {
-      if (ct.isFenLine(line)) {
-        if (ply !== 1) {
-          return LineError.NoMoveFound;
-        } else {
-          let res = fenLineFirstPly(line, _sanMeta);
-          return res;
-        }
-      } else {
-        if (ply >= 2) {
-          return moveLineNewPly(line, ply, _sanMeta);
-        } else {
-          return LineError.AlreadySet;
-        }
-      }
-    }
-  } else {
-    return LineError.InvalidInput;
-  }
-}
-
-let _makes = new makes_1.Makes();
-
-exports.fen = _makes.setter0(_fen, isLineError);
-exports.ply = _makes.getter1(_ply);
-exports.aply = _makes.setter1(_aply, isLineError);
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.Makes = exports.MakesError = void 0;
-var MakesError;
-
-(function (MakesError) {
-  MakesError["AlreadySet"] = "already set";
-  MakesError["NotSet"] = "not set";
-})(MakesError = exports.MakesError || (exports.MakesError = {}));
-
-class Makes {
-  constructor() {
-    this.data = new Map();
-  }
-
-  setter0(f, isApiError) {
-    let data = this.data;
-    return function (key, arg1) {
-      let _res = data.get(key);
-
-      if (_res) {
-        return MakesError.AlreadySet;
-      } else {
-        let fres = f(arg1);
-
-        if (isApiError(fres)) {
-          return fres;
-        } else {
-          data.set(key, fres);
-        }
-      }
-    };
-  }
-
-  setter1(f, isApiError) {
-    let data = this.data;
-    return function (key, a1, a2) {
-      let _v = data.get(key);
-
-      if (_v) {
-        let _res = f(_v, a1, a2);
-
-        if (isApiError(_res)) {
-          return _res;
-        } else {
-          data.set(key, _res);
-        }
-      } else {
-        return MakesError.NotSet;
-      }
-    };
-  }
-
-  getter1(f) {
-    let data = this.data;
-    return function (key, a1) {
-      let _v = data.get(key);
-
-      if (_v) {
-        let _res = f(_v, a1);
-
-        return _res;
-      } else {
-        return MakesError.NotSet;
-      }
-    };
-  }
-
-}
-
-exports.Makes = Makes;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports._situationAfter = exports.situationAfter = exports.get = void 0;
-
-const db = __importStar(require("./db"));
-
-const db2 = __importStar(require("./db2"));
-
-const sz = __importStar(require("./sanitizes"));
-
-const r = __importStar(require("./role"));
-
-function get(before, sanMeta) {
-  let {
-    poss,
-    pieces,
-    actorMoves
-  } = db2;
-  let {
-    actors
-  } = db;
-
-  let _actors = actors.query({
-    pos: poss.query([sanMeta.file || "*", sanMeta.rank || "*"]),
-    piece: pieces.query({
-      role: sanMeta.role,
-      color: before.turn
-    }),
-    board: before.board
-  });
-
-  return actorMoves.querz(_actors, "*").flatMap(([actor, moves]) => {
-    let move = moves.find(move => move.dest === sanMeta.to);
-
-    if (move) {
-      return [move];
-    } else {
-      return [];
-    }
-  })[0];
-}
-
-exports.get = get;
-exports.situationAfter = sz.sanitized(db.situations, _situationAfter);
-
-function _situationAfter(move) {
-  return {
-    board: move.after,
-    turn: r.otherColor(move.piece.color)
-  };
-}
-
-exports._situationAfter = _situationAfter;
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.toFenStr = void 0;
-
-function toFenStr(piece) {
-  if (piece.color === 'w') {
-    return piece.role.toUpperCase();
-  }
-
-  return piece.role;
-}
-
-exports.toFenStr = toFenStr;
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.dopKey = exports.key = exports.rkey = exports.fkey = exports.mRankKey = exports.mFileKey = exports.mPosKey = exports.posKey2fKey = exports.posKey2rKey = exports.rByKey = exports.fByKey = exports.posKeys = exports.rankKeys = exports.fileKeys = exports.isPos = exports.mDirection = exports.isDirection = exports.directions = void 0;
-exports.directions = [1, 2, 3, 4, 5, 6, 7, 8];
-
-function isDirection(_) {
-  return !!mDirection(_);
-}
-
-exports.isDirection = isDirection;
-
-function mDirection(_) {
-  if (_ >= 1 && _ <= 8) {
-    return _;
-  }
-}
-
-exports.mDirection = mDirection;
-
-function isPos(_) {
-  if (Array.isArray(_)) {
-    if (_.length === 2) {
-      return _.map(isDirection).every(_ => !!_);
-    }
-  }
-
-  return false;
-}
-
-exports.isPos = isPos;
-exports.fileKeys = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-exports.rankKeys = ['1', '2', '3', '4', '5', '6', '7', '8'];
-exports.posKeys = ['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'd1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'e1', 'e2', 'e3', 'e4', 'e5', 'e6', 'e7', 'e8', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8'];
-
-const fByKey = _ => {
-  return exports.fileKeys.indexOf(_) + 1;
-};
-
-exports.fByKey = fByKey;
-
-const rByKey = _ => {
-  return exports.rankKeys.indexOf(_) + 1;
-};
-
-exports.rByKey = rByKey;
-
-const posKey2rKey = _ => {
-  return _[1];
-};
-
-exports.posKey2rKey = posKey2rKey;
-
-const posKey2fKey = _ => {
-  return _[0];
-};
-
-exports.posKey2fKey = posKey2fKey;
-
-const mPosKey = _ => {
-  if (exports.posKeys.includes(_)) {
-    let i = exports.posKeys.indexOf(_);
-    return exports.posKeys[i];
-  }
-};
-
-exports.mPosKey = mPosKey;
-
-function mFileKey(_) {
-  if (exports.fileKeys.includes(_)) {
-    let i = exports.fileKeys.indexOf(_);
-    return exports.fileKeys[i];
-  }
-}
-
-exports.mFileKey = mFileKey;
-
-function mRankKey(_) {
-  if (exports.rankKeys.includes(_)) {
-    let i = exports.rankKeys.indexOf(_);
-    return exports.rankKeys[i];
-  }
-}
-
-exports.mRankKey = mRankKey;
-
-function fkey(f) {
-  return exports.fileKeys[f - 1];
-}
-
-exports.fkey = fkey;
-
-function rkey(r) {
-  return exports.rankKeys[r - 1];
-}
-
-exports.rkey = rkey;
-
-function key(p) {
-  return fkey(p[0]) + rkey(p[1]);
-}
-
-exports.key = key;
-
-function dopKey(_) {
-  if (isPos(_)) {
-    return key(_);
-  } else if (isDirection(_)) {
-    return rkey(_);
-  } else {
-    return 'dopX';
-  }
-}
-
-exports.dopKey = dopKey;
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-}); // export const allFiles: Array<pm.FileMeta> = [],
-// allRanks: Array<pm.RankMeta> = [],
-// allPoss: Array<pm.PosMeta> = [];
-// export type AllFilesAccess = {
-//   allFilesByKey: FileByKey,
-//   allFilesByFile: FileByFile
-// }
-// export type AllRanksAccess = {
-//   allRanksByKey: RankByKey,
-//   allRanksByRank: RankByRank
-// }
-// export type AllPossAccess = {
-//   allPossByKey: PosByKey,
-//   allPossByPos: PosByPos
-// }
-// export type FileByKey = Map<pm.FileKey, pm.FileMeta>
-// export type RankByKey = Map<pm.RankKey, pm.RankMeta>
-// export type PosByKey = Map<pm.PosKey, pm.PosMeta>
-// export type FileByFile = Map<ct.File, pm.FileMeta>
-// export type RankByRank = Map<ct.Rank, pm.RankMeta>
-// export type PosByPos = Map<ct.Pos, pm.PosMeta>
-// let allRanksByKey: RankByKey = new Map(),
-// allRanksByRank: RankByRank = new Map()
-// allRanks.forEach(rank => {
-//   allRanksByKey.set(rank.key, rank);
-//   allRanksByRank.set(rank.r, rank);
-// });
-// let allFilesByKey: FileByKey = new Map(),
-// allFilesByFile: FileByFile = new Map()
-// allFiles.forEach(file => {
-//   allFilesByKey.set(file.key, file);
-//   allFilesByFile.set(file.f, file);
-// });
-// let allPossByKey: PosByKey = new Map(),
-// allPossByPos: PosByPos = new Map()
-// allPoss.forEach(pos => {
-//   allPossByKey.set(pos.key, pos);
-//   allPossByPos.set(pos.p, pos);
-// });
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-}); // export interface PosMeta {
-//   p: ct.Pos,
-//   key: PosKey,
-//   dFile: Map<dt.Displace0, PosMeta>,
-//   dRank: Map<dt.Displace0, PosMeta>,
-//   dPos: Map<dt.Displace1, PosMeta>,
-//   dPos2: Map<dt.Displace2, Array<PosMeta>>
-// }
-// export interface FileMeta {
-//   f: ct.File,
-//   key: FileKey,
-//   dRank: Map<dt.Displace0, PosMeta>,
-//   dFile: Map<dt.Displace0, FileMeta>,
-// }
-// export interface RankMeta {
-//   r: ct.Rank,
-//   key: RankKey,
-//   dFile: Map<dt.Displace0, PosMeta>,
-//   dRank: Map<dt.Displace0, RankMeta>
-// }
-"use strict";
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.otherColor = exports.mColor = exports.mRole = exports.isRole = void 0;
-
-function isRole(_) {
-  return !mRole(_);
-}
-
-exports.isRole = isRole;
-let roles = ['r', 'b', 'n', 'q', 'k', 'p'];
-
-function mRole(str) {
-  let _ = str.toLowerCase();
-
-  if (roles.includes(_)) {
-    return _;
-  }
-}
-
-exports.mRole = mRole;
-
-function mColor(str) {
-  let _ = str.toLowerCase();
-
-  if (roles.includes(_)) {
-    if (_ === str) {
-      return 'b';
-    } else {
-      return 'w';
-    }
-  }
-}
-
-exports.mColor = mColor;
-
-function otherColor(color) {
-  return color === 'w' ? 'b' : 'w';
-}
-
-exports.otherColor = otherColor;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.san2san2 = exports.isSan2 = exports.san2meta = exports.sBool = exports.str2meta = void 0;
-
-const p = __importStar(require("./pos"));
-
-const r = __importStar(require("./role"));
-
-const db2 = __importStar(require("./db2"));
-
-let {
-  poss
-} = db2;
-
-function str2meta(str) {
-  if (!isSan2(str)) {
-    let str2 = san2san2(str);
-
-    if (str2) {
-      return san2meta(str2);
-    }
-  } else {
-    return san2meta(str);
-  }
-}
-
-exports.str2meta = str2meta;
-
-function sBool(str) {
-  if (str === '') {
-    return false;
-  }
-
-  return true;
-}
-
-exports.sBool = sBool;
-
-function san2meta(san2) {
-  let res = san2.split(' ');
-  let [roleS, fileS, rankS, captureS, toS, promotionS, checkS, mateS] = res;
-  let mate = sBool(mateS),
-      check = sBool(checkS),
-      capture = sBool(captureS),
-      mRankKey = p.mRankKey(rankS),
-      mFileKey = p.mFileKey(fileS);
-  let rank = mRankKey ? p.rByKey(mRankKey) : undefined;
-  let file = mFileKey ? p.fByKey(mFileKey) : undefined;
-  let mrole = r.mRole(roleS),
-      promotion = r.mRole(promotionS);
-  let mToKey = p.mPosKey(toS);
-
-  if (mToKey) {
-    let toFKey = p.posKey2fKey(mToKey),
-        toRKey = p.posKey2rKey(mToKey),
-        toF = p.fByKey(toFKey),
-        toR = p.rByKey(toRKey),
-        to = poss.pget(toF, toR);
-
-    if (to) {
-      return {
-        file,
-        rank,
-        check,
-        mate,
-        capture,
-        promotion,
-        to,
-        role: mrole ? mrole : 'p'
-      };
-    }
-  }
-}
-
-exports.san2meta = san2meta;
-
-function isSan2(str) {
-  let res = str.split(' ');
-
-  if (res.length === 8) {
-    let [role, file, rank, capture, to, promotion, check, mate] = res;
-    let RES = [/N|B|R|Q|K|/, /[a-h]?/, /([1-8]?)/, /(x?)/, /([a-h][0-9])/, /(=?[NBRQ]?)/, /(\+?)/, /(\#?)/];
-
-    for (let key in RES) {
-      if (!res[key].match(RES[key])) {
-        return false;
-      }
-    }
-
-    return true;
-  } else {
-    return false;
-  }
-}
-
-exports.isSan2 = isSan2;
-
-function san2san2(san) {
-  let RE = /(N|B|R|Q|K|)([a-h]?)([1-8]?)(x?)([a-h][0-9])(=?[NBRQ]?)(\+?)(\#?)/;
-  let m = san.match(RE);
-
-  if (m) {
-    let [_, role, file, rank, capture, to, promotion, check, mate] = m;
-    let res = [role, file, rank, capture, to, promotion, check, mate].join(' ');
-    return res;
-  }
-}
-
-exports.san2san2 = san2san2;
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.SanitizedSpace2 = exports.Sanitizes = exports.sanitizedU = exports.sanitized = exports.Sanitized = void 0;
-
-const isequal_1 = require("./isequal");
-
-var Sanitized;
-
-(function (Sanitized) {})(Sanitized = exports.Sanitized || (exports.Sanitized = {}));
-
-const sanitized = (szer, cb) => (...args) => szer.get(cb(...args));
-
-exports.sanitized = sanitized;
-
-const sanitizedU = (szer, cb) => (a, ...args) => {
-  let _a = cb(a, ...args);
-
-  if (_a) {
-    return szer.get(_a);
-  }
-};
-
-exports.sanitizedU = sanitizedU;
-
-class Sanitizes {
-  constructor() {
-    this.world = [];
-  }
-
-  query(a) {
-    return this.world.filter(_ => {
-      return isequal_1.mapmatch(_, a);
-    });
-  }
-
-  get(a) {
-    let _a = this.world.find(_ => isequal_1.isEqualAny(a, _));
-
-    if (_a) {
-      return _a;
-    } else {
-      this.world.push(a);
-      return a;
-    }
-  }
-
-}
-
-exports.Sanitizes = Sanitizes;
-
-class SanitizedSpace2 {
-  constructor(make, mA, mB) {
-    this.make = make;
-    this.mA = mA;
-    this.mB = mB;
-    this.space = new Sanitizes();
-  }
-
-  query(mc) {
-    return this.space.query(mc);
-  }
-
-  get(c) {
-    return this.space.get(c);
-  }
-
-  pget(a, b) {
-    return this.space.get(this.make(a, b));
-  }
-
-  nget(sa, sb) {
-    return this.mget(this.mA(sa), this.mB(sb));
-  }
-
-  mget(ma, mb) {
-    if (ma && mb) {
-      return this.pget(ma, mb);
-    }
-  }
-
-}
-
-exports.SanitizedSpace2 = SanitizedSpace2;
-"use strict";
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.union = void 0;
-
-function union(setA, setB) {
-  let _union = new Set(setA);
-
-  for (let elem of setB) {
-    _union.add(elem);
-  }
-
-  return _union;
-}
-
-exports.union = union;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util2_1 = require("./util2");
-
-const util_1 = require("./util");
-
-const sz = __importStar(require("../sanitizes"));
-
-const isequal_1 = require("../isequal");
-
-function default_1() {
-  util_1.it('tests equality', () => {
-    util_1.nac('3 4', !isequal_1.isEqualAny(3, 4));
-    util_1.nac('p equal', isequal_1.mapmatch({
-      a: '1',
-      b: '2',
-      c: '3'
-    }, {
-      a: '1',
-      b: '*',
-      c: '*'
-    }));
-  });
-  util_1.it.only('sanitizes numbers', () => {
-    let dirs = new sz.Sanitizes();
-    util_1.nacc('san 3 3', dirs.get(3), dirs.get(3));
-    util_1.nac('san 3 4', dirs.get(3) !== dirs.get(4));
-  });
-  util_1.it('sanitizes arrays', () => {
-    let poss = new sz.Sanitizes();
-    let a = [3];
-    util_1.nac(`returns same type`, util2_1.deepeq(poss.get(a), [3]));
-    util_1.nac('san [3] [3]', poss.get([3]) === a);
-    util_1.nac('san [3] [4]', poss.get([4]) !== a);
-  });
-  util_1.it('sanitizes maps', () => {
-    let boards = new sz.Sanitizes();
-    let thr = [3],
-        four = [4];
-    let exp = new Map();
-    exp.set(thr, "three");
-    let m = new Map();
-    m.set(thr, "three");
-    util_1.nac(`returns same type`, util2_1.deepeq(boards.get(m), exp));
-    m.set(four, "four");
-    exp.set(four, "four");
-    util_1.nac(`returns ref equal`, boards.get(exp) === m);
-  });
-  util_1.it('sanitizes objects', () => {
-    let boards = new sz.Sanitizes();
-    let a = {
-      role: 'b',
-      color: 'w'
-    };
-    let b = {
-      role: 'b',
-      color: 'w'
-    };
-    util_1.nac('ref equal', boards.get(a) === a);
-    util_1.nac('a b', boards.get(b) === a);
-  });
-
-  function key2pos(key) {
-    return {
-      file: key[0],
-      rank: key[1]
-    };
-  }
-
-  let poss = new sz.Sanitizes();
-  let boards = new sz.Sanitizes();
-  util_1.it('queries objects', () => {
-    ['a1', 'b1', 'c1', 'a2', 'a3'].forEach(_ => {
-      poss.get(key2pos(_));
-    });
-    let res = poss.query({
-      file: 'a',
-      rank: '*'
-    });
-    let afiles = ['a1', 'a2', 'a3'].map(key2pos);
-    util_1.nac('a file', util2_1.deepeq(res, afiles));
-  });
-  util_1.it("queries nested objects", () => {
-    ['a1', 'b1', 'c1', 'a2', 'a3'].forEach(_ => {
-      let p = poss.get(key2pos(_));
-      let p2 = poss.get(key2pos(_));
-      boards.get({
-        p1: p,
-        p2
-      });
-    });
-    let res2 = boards.query({
-      p1: poss.query({
-        file: "c",
-        rank: "*"
-      }),
-      p2: "*"
-    });
-    console.log(res2);
-  });
-}
-
-exports.default = default_1;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util2_1 = require("./util2");
-
-const util_1 = require("./util");
-
-const db2 = __importStar(require("../db2"));
-
-const a = __importStar(require("../actor"));
-
-const f = __importStar(require("../fen"));
-
-let {
-  poss,
-  pieces
-} = db2;
-
-function default_1() {
-  let initialSituation = f.situation('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-  let {
-    board,
-    turn
-  } = initialSituation;
-  util_1.it('makes moves', () => {
-    let pos = poss.nget(2, 2);
-    let piece = pieces.nget('P', 'P');
-    let res = a.moves({
-      board,
-      piece,
-      pos
-    });
-    util_1.nac('moves', !util2_1.deepeq(res, []));
-  });
-}
-
-exports.default = default_1;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util_1 = require("./util");
-
-const cz = __importStar(require("../calculates"));
-
-function default_1() {
-  const pkey = str => ({
-    file: str[0],
-    rank: str[1]
-  });
-
-  util_1.it('calculates lazy vals', () => {
-    let ci = 0;
-    let sums = new cz.Calculates(pos => {
-      ci++;
-      return {
-        fandr: pos.rank + pos.file
-      };
-    });
-    let poss = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3', 'c5'].map(pkey);
-    let res = sums.querz(poss, {
-      fandr: "1a"
-    });
-    util_1.nacc('called once', ci, poss.length);
-    sums.querz(poss, {
-      fandr: "1a"
-    });
-    util_1.nacc('called once', ci, poss.length);
-  });
-}
-
-exports.default = default_1;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util_1 = require("./util");
-
-const util2_1 = require("./util2");
-
-const f = __importStar(require("../fen"));
-
-const s = __importStar(require("../san"));
-
-const db2 = __importStar(require("../db2"));
-
-let {
-  poss
-} = db2;
-
-function default_1() {
-  util_1.it('validates san', () => {
-    util_1.nac('Nf6', s.str2meta('Nf6'));
-    util_1.nac('e4', s.str2meta('e4'));
-  });
-  util_1.it('finds positions', () => {
-    util_1.nac('1 1', util2_1.deepeq(poss.nget(1, 1), [1, 1]));
-    util_1.nac('1 8', util2_1.deepeq(poss.nget(1, 8), [1, 8]));
-    util_1.nac('1 10', util2_1.deepeq(poss.nget(1, 10), undefined));
-  });
-  util_1.it('creates board', () => {
-    const situation = f.situation('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-
-    if (!situation) {
-      return '! situation';
-    }
-
-    let {
-      board
-    } = situation;
-    util_1.nacc('32 pieces', board.size, 32);
-    util_1.qed('w p at 2 2', board.get(poss.nget(2, 2) || {}), {
-      role: 'p',
-      color: 'w'
-    });
-  }); // console.log(s.san2meta('Nbe4+'));
-}
-
-exports.default = default_1;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util_1 = require("./util");
-
-const util2_1 = require("./util2");
-
-const dir = __importStar(require("../direction"));
-
-const dt = __importStar(require("../dtypes"));
-
-const p = __importStar(require("../pos"));
-
-const v = __importStar(require("../visual"));
-
-const db2 = __importStar(require("../db2"));
-
-function pos(f, r) {
-  let d = 1;
-  return db2.poss.pget(p.mDirection(f) || d, p.mDirection(r) || d);
-}
-
-function default_1() {
-  util_1.it('displaces on 0 direction', () => {
-    let t = [[-8, 1, undefined], [-1, 1, undefined], [8, 3, undefined], [7, 1, 8], [1, 3, 4]];
-    t.forEach(([di, d, res]) => {
-      let _d = dir.ddir0(di, d);
-
-      util_1.nacc(` ${di} ${d} != `, _d, res);
-    });
-  });
-  util_1.it('displaces on position', () => {
-    let t = [[[0, 0], pos(1, 1), pos(1, 1)], [[1, 0], pos(1, 1), pos(2, 1)], [[4, -3], pos(4, 4), pos(8, 1)], [[-1, 0], pos(1, 1), undefined], [[-5, 7], pos(1, 1), undefined]];
-    t.forEach(([d1, _p, res]) => {
-      let _d = dir.ddir1(d1, _p);
-
-      if (res && _d) {
-        util_1.nacc(`expected ${p.key(res)} got ${p.key(_d)}`, res, _d);
-      } else if (!res && !_d) {} else if (!res && _d) {
-        util_1.cry(`expected undefined got ${p.key(_d)}`);
-      } else if (!_d && res) {
-        util_1.cry(`expected ${p.key(res)} got undefined`);
-      }
-    });
-  });
-  util_1.it('displaces displace2', () => {
-    let t = [[dt.DKnight, pos(1, 1), new Set([pos(3, 2), pos(2, 3)])], [dt.DKnight, pos(4, 4), new Set([pos(5, 6), pos(5, 2), pos(3, 6), pos(3, 2), pos(6, 5), pos(6, 3), pos(2, 5), pos(2, 3)])]];
-    t.forEach(([d2, _p, expected]) => {
-      let got = dir.ddir2(d2, _p);
-      util_1.nac(`got ${v.str(got)} != expected ${v.str(expected)}`, util2_1.deepeq(got, expected));
-    });
-  });
-  util_1.it('routes for direction', () => {
-    let t = [[0, 1, [1]], [1, 1, [1, 2, 3, 4, 5, 6, 7, 8]], [-1, 4, [4, 3, 2, 1]]];
-    t.forEach(([d0, _d, expected]) => {
-      let got = dir.rroute0(d0, _d);
-      util_1.nac(`got ${v.str(got)} !== expected ${v.str(expected)}`, util2_1.deepeq(got, expected));
-    });
-  }); // [0,1] [1,6]
-  // [1]
-  // [6,7,8]
-  // [1,6] [1,7] [1,8]
-  // [2,1] [1,6]
-  // [1,3,5,7]
-  // [6,7,8]
-  // [1,6] [3,7] [5,8]
-
-  util_1.it('routes for position', () => {
-    let t = [[[0, 0], pos(1, 1), [pos(1, 1)]], [[0, 1], pos(1, 6), [pos(1, 6), pos(1, 7), pos(1, 8)]], [[1, 1], pos(4, 5), [pos(4, 5), pos(5, 6), pos(6, 7), pos(7, 8)]], [[-2, 1], pos(4, 5), [pos(4, 5), pos(2, 6)]]];
-    t.forEach(([d1, _p, expected]) => {
-      let got = dir.rroute1(d1, _p);
-      util_1.nac(`got ${v.str(got)} !== expected ${v.str(expected)}`, util2_1.deepeq(got, expected));
-    });
-  });
-}
-
-exports.default = default_1;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util_1 = require("./util");
-
-const db2 = __importStar(require("../db2"));
-
-const f = __importStar(require("../fen"));
-
-function default_1() {
-  let fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-  let situation = f.situation(fen);
-  let d1 = db2.poss.nget(4, 1);
-  let wQ = {
-    role: 'q',
-    color: 'w'
-  };
-  let wP = {
-    role: 'p',
-    color: 'w'
-  };
-  util_1.it('fen', () => {
-    let d1Q = situation.board.get(d1);
-    util_1.qed('d1 Q', d1Q, wQ);
-    util_1.qed('same fen', f.fen(situation), fen);
-  });
-}
-
-exports.default = default_1;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util_1 = require("./util");
-
-const san_1 = require("../san");
-
-const f = __importStar(require("../fen"));
-
-const h = __importStar(require("../history"));
-
-const m = __importStar(require("../move"));
-
-function default_1() {
-  let situation = f.situation('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-  let e4 = san_1.str2meta('e4');
-  let e5 = san_1.str2meta('e5');
-  let a6 = san_1.str2meta('a6');
-  let wP = {
-    role: 'p',
-    color: 'w'
-  };
-  util_1.it('history', () => {
-    let first = h.first(situation, e4);
-
-    if (!first) {
-      return '! 1. e4';
-    }
-
-    util_1.qed('1 move', first.length, 1);
-    util_1.qed('1. e4', f.fen(m.situationAfter(first[0])), 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1');
-    let twoA6 = h.add(first, a6);
-
-    if (!twoA6) {
-      return '! 2. a6';
-    }
-
-    util_1.qed('2 move', twoA6.length, 2);
-    util_1.qed('1. e4 a6', f.fen(m.situationAfter(twoA6[1])), 'rnbqkbnr/1ppppppp/p7/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1');
-    let threeE5 = h.add(twoA6, e5);
-
-    if (!threeE5) {
-      return '! 2. a6';
-    }
-
-    util_1.qed('2 move', threeE5.length, 3);
-    util_1.qed('1. e4 a6 2. e5', f.fen(m.situationAfter(threeE5[2])), 'rnbqkbnr/1ppppppp/p7/4P3/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1');
-  });
-  util_1.it.only('makes moves', () => {
-    let seed = undefined;
-    let hfinal = 'e4 a5 Nf3 Nf6 g3 g6 e5 a4'.split(' ').map(_ => san_1.str2meta(_)).reduce((acc, _) => {
-      if (!acc) {
-        return h.first(situation, _);
-      } else {
-        return h.add(acc, _);
-      }
-    }, seed);
-
-    if (!hfinal) {
-      return '! no history';
-    }
-
-    util_1.qed('8 moves', hfinal.length, 8);
-    util_1.qed('correct ', f.fen(m.situationAfter(hfinal[7])), 'rnbqkb1r/1ppppp1p/5np1/4P3/p7/5NP1/PPPP1P1P/RNBQKB1R w KQkq - 0 1');
-  });
-}
-
-exports.default = default_1;
-"use strict";
-
-var __importDefault = this && this.__importDefault || function (mod) {
-  return mod && mod.__esModule ? mod : {
-    "default": mod
-  };
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util_1 = require("./util");
-
-const makes_1 = __importDefault(require("./makes"));
-
-const core_1 = __importDefault(require("./core"));
-
-const _util_1 = __importDefault(require("./_util"));
-
-const line_1 = __importDefault(require("./line"));
-
-const actor_1 = __importDefault(require("./actor"));
-
-const routes_1 = __importDefault(require("./routes"));
-
-const calcutes_1 = __importDefault(require("./calcutes"));
-
-const direction_1 = __importDefault(require("./direction"));
-
-const history_1 = __importDefault(require("./history"));
-
-const fen_1 = __importDefault(require("./fen"));
-
-const move_1 = __importDefault(require("./move"));
-
-function default_1() {
-  util_1.tMo(makes_1.default);
-  util_1.tMo(direction_1.default);
-  util_1.tMo(_util_1.default);
-  util_1.tMo(core_1.default);
-  util_1.tMo(line_1.default);
-  util_1.tMo(calcutes_1.default);
-  util_1.tMo(routes_1.default);
-  util_1.tMo(move_1.default);
-  util_1.tMo(actor_1.default);
-  util_1.tMo.only(history_1.default);
-  util_1.tMo(fen_1.default);
-  util_1.run();
-}
-
-exports.default = default_1;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util_1 = require("./util");
-
-const l = __importStar(require("../line"));
-
-function default_1() {
-  let ifen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-  util_1.it('makes ply', () => {
-    let res = l.fen('line0', 'fen');
-    util_1.nacc('invalid input', res, l.LineError.InvalidInput);
-    res = l.fen('line0', ifen);
-    util_1.nac('good fen', !res);
-    let pres = l.ply('line0', 1);
-    util_1.nacc('no move ply 1', pres, l.LineError.NoMoveFound);
-    pres = l.ply('line0', 0);
-    util_1.nacc('move ply 0', pres, ifen);
-    let apres = l.aply('line0', 0, 'san');
-    util_1.nacc('invalid input', apres, l.LineError.InvalidInput);
-    apres = l.aply('line0', 0, 'Nf6');
-    util_1.nacc('already set', apres, l.LineError.AlreadySet);
-    apres = l.aply('line0', 2, 'Nf6');
-    util_1.nacc('fen line no move found 2', apres, l.LineError.NoMoveFound);
-    apres = l.aply('line0', 1, 'e4');
-    util_1.nac('set san 1 ok', !apres);
-    apres = l.aply('line0', 1, 'Nf6');
-    util_1.nacc('already set ply 1', apres, l.LineError.AlreadySet);
-    apres = l.aply('line0', 2, 'e5');
-    util_1.nac('set san 2 ok', !apres);
-    apres = l.aply('line0', 2, 'e5');
-    util_1.nacc('already set ply 2', apres, l.LineError.AlreadySet);
-    apres = l.aply('line0', 3, 'e7');
-    util_1.nacc('cant make move e7', apres, l.LineError.CantMakeMove);
-  });
-  util_1.it('can make move', () => {
-    let res = l.fen('line3', ifen);
-    let apres = l.aply('line3', 1, 'e4');
-    util_1.qed('set san 1 ok', apres, undefined);
-    apres = l.aply('line3', 2, 'e5');
-    util_1.qed('set san 2 ok', apres, undefined);
-  });
-  util_1.it('cant make invalid moves', () => {
-    l.fen('line1', ifen);
-    util_1.qed('1. e6', l.aply('line1', 1, 'e6'), l.LineError.CantMakeMove);
-    util_1.qed('1. e4', l.aply('line1', 1, 'e4'), undefined);
-  });
-  util_1.it.only('plays a game', () => {
-    l.fen('lineg', ifen);
-    'e4 e5 g4 g6'.split(' ').forEach((_, i) => {
-      util_1.qed(`${i + 1}. ${_}`, l.aply('lineg', i + 1, _), undefined);
-    });
-  });
-}
-
-exports.default = default_1;
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util_1 = require("./util");
-
-const makes_1 = require("../makes");
-
-var ApiError;
-
-(function (ApiError) {
-  ApiError["BelowZero"] = "bz";
-  ApiError["IsZero"] = "iz";
-  ApiError["AboveZero"] = "az";
-  ApiError["TooLong"] = "tl";
-})(ApiError || (ApiError = {}));
-
-function isApiError(_) {
-  return Object.values(ApiError).includes(_);
-}
-
-function test() {
-  util_1.it('makes', () => {
-    let api = {
-      makeString(_) {
-        if (_ === 0) {
-          return ApiError.IsZero;
-        } else {
-          return "api" + _;
-        }
-      },
-
-      addString(pre, _, o) {
-        if (pre.length > 5) {
-          return ApiError.TooLong;
-        } else {
-          return pre + _;
-        }
-      },
-
-      getString(pre, _) {
-        return pre + _;
-      }
-
-    };
-    let m = new makes_1.Makes();
-    let buildNoZero = m.setter0(api.makeString, isApiError);
-    let addNumberUpto5 = m.setter1(api.addString, isApiError);
-    let returnValueAndNumber = m.getter1(api.getString);
-    util_1.nacc('build zero', buildNoZero('line3', 0), ApiError.IsZero);
-    buildNoZero('line3', 3);
-    util_1.nacc('make by value', returnValueAndNumber('line3', 9), 'api39');
-    util_1.nacc('make by value', buildNoZero('line3', 2), 'already set');
-    buildNoZero('line2', 4);
-    util_1.nacc('make by value', returnValueAndNumber('line2', 9), 'api49');
-    util_1.nacc('no line set', addNumberUpto5('line10', 4, 0), 'not set');
-    addNumberUpto5('line3', 4, 0);
-    util_1.nacc('yes line set', returnValueAndNumber('line3', 8), 'api348');
-    addNumberUpto5('line3', 5, 0);
-    util_1.nacc('too long', addNumberUpto5('line3', 4, 0), 'tl');
-    util_1.nacc('retvalnum', returnValueAndNumber('line3', 8), 'api3458');
-  });
-}
-
-exports.default = test;
-;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util_1 = require("./util");
-
-const san_1 = require("../san");
-
-const f = __importStar(require("../fen"));
-
-const m = __importStar(require("../move"));
-
-function default_1() {
-  let situation = f.situation('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-  let e4 = san_1.str2meta('e4');
-  let wP = {
-    role: 'p',
-    color: 'w'
-  };
-  util_1.it('actors', () => {
-    let oneE4 = m.get(situation, e4);
-
-    if (!oneE4) {
-      return '! 1. e4';
-    }
-
-    util_1.qed('1. e4', oneE4.piece, wP);
-    util_1.qed("b's turn", m.situationAfter(oneE4).turn, "b");
-  });
-}
-
-exports.default = default_1;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const util_1 = require("./util");
-
-const p = __importStar(require("../pos"));
-
-const dt = __importStar(require("../dtypes"));
-
-const db2 = __importStar(require("../db2"));
-
-const dir = __importStar(require("../direction"));
-
-function default_1() {
-  let a1 = db2.poss.nget(1, 1);
-  let d4 = db2.poss.nget(4, 4);
-  util_1.it('gets route0', () => {
-    let r0dir = dir.rroute0(1, 7);
-    util_1.qed('r0 -1 1', r0dir, [7, 8]);
-    r0dir = dir.rroute0(-1, 2);
-    util_1.qed('r0 -1 1', r0dir, [2, 1]);
-  });
-  util_1.it('gets route1', () => {
-    let res = dir.rroute1([3, 3], a1);
-    util_1.qed('d [1 1] a1', res, [[1, 1], [4, 4], [7, 7]]);
-    res = dir.rroute1([-1, 3], a1);
-    util_1.qed('d [-1 3] a1', res, [[1, 1]]);
-    let resflat = dir.rrouteflat1(new Set([[-1, 3]]), a1);
-    util_1.qed('d [-1 3] a1', [...resflat], []);
-  });
-  util_1.it('route0 d4', () => {
-    let res = dir.rroute2(dt.DKnight, d4); // console.log(res);
-  });
-  util_1.it('gets route2', () => {
-    let res = dir.rrouteflat1(dt.DKnight, d4);
-    util_1.qed('N@d4', [...res].map(p.dopKey), ['f3', 'f5', 'b3', 'b5', 'c2', 'c6', 'e2', 'e6']);
-  });
-}
-
-exports.default = default_1;
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.qed = exports.nac = exports.nacc = exports.cry = exports.jss = exports.it = exports.runtests = exports.tMo = exports.run = void 0;
-
-const util2_1 = require("./util2");
-
-function testFailed(t) {
-  console.log(`❌ ${t.msg} ${t.fail}`);
-}
-
-function testThrowed(t) {
-  console.log(`💀 ${t.msg} ${t.err}`);
-}
-
-function testBegin(t) {
-  console.log(`${t.msg}`);
-}
-
-let tmos = [],
-    onlytmos = [];
-let onlyset = [];
-let stset = [];
-
-function run() {
-  let _tmos = onlytmos.length > 0 ? onlytmos : tmos;
-
-  _tmos.forEach(_ => _());
-
-  runtests();
-}
-
-exports.run = run;
-
-exports.tMo = (() => {
-  let res = fn => {
-    tmos.push(fn);
-  };
-
-  res.only = fn => {
-    onlytmos.push(fn);
-  };
-
-  return res;
-})();
-
-function runtests() {
-  let errs = [];
-  let i = 0;
-  let testOnly = onlyset.length > 0 ? onlyset : stset;
-  testOnly.forEach(_ => {
-    try {
-      i++;
-      testBegin(_);
-
-      let msg = _.fn();
-
-      if (msg) {
-        _.fail = msg;
-      }
-    } catch (e) {
-      _.err = e;
-    }
-  });
-  testOnly.filter(_ => !!_.fail).forEach(testFailed);
-  testOnly.filter(_ => !!_.err).forEach(testThrowed);
-  console.log(`done ${i}`);
-}
-
-exports.runtests = runtests;
-
-function it(msg, fn) {
-  let test = {
-    msg,
-    fn
-  };
-  stset.push(test);
-}
-
-exports.it = it;
-
-it.only = (msg, fn) => {
-  let test = {
-    msg,
-    fn
-  };
-  onlyset.push(test);
-};
-
-function jss(o, msg) {
-  console.log(JSON.stringify(o), msg);
-}
-
-exports.jss = jss;
-
-function cry(msg, o) {
-  let oS = JSON.stringify(o);
-  console.log(`❌ ${msg} ` + oS);
-}
-
-exports.cry = cry;
-
-function nacc(msg, a, b) {
-  if (a !== b) {
-    cry(`${msg} got`, a);
-  }
-}
-
-exports.nacc = nacc;
-
-function nac(msg, a) {
-  if (!a) {
-    cry(msg);
-  }
-}
-
-exports.nac = nac;
-
-function qed(msg, a, b) {
-  if (!util2_1.deepeq(a, b)) {
-    cry(`${msg} got`, a);
-  }
-}
-
-exports.qed = qed;
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.arreq = exports.seteq = exports.deepeq = void 0;
-
-function deepeq(a, b) {
-  if (Array.isArray(a) && Array.isArray(b)) {
-    return arreq(a, b);
-  } else if (a instanceof Set && b instanceof Set) {
-    return seteq(a, b);
-  } else if (typeof a === 'object' && typeof b === 'object') {
-    for (let key in a) {
-      if (!deepeq(a[key], b[key])) {
-        return false;
-      }
-    }
-
-    for (let key in b) {
-      if (!deepeq(a[key], b[key])) {
-        return false;
-      }
-    }
-
-    return true;
-  } else {
-    return a === b;
-  }
-}
-
-exports.deepeq = deepeq;
-
-function seteq(a, b) {
-  if (a.size !== b.size) {
-    return false;
-  }
-
-  for (let item of a) {
-    let found = false;
-
-    for (let item2 of b) {
-      if (deepeq(item, item2)) {
-        found = true;
-        break;
-      }
-    }
-
-    if (!found) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-exports.seteq = seteq;
-
-function arreq(a, b) {
-  if (a.length !== b.length) {
-    return false;
-  }
-
-  for (let i in a) {
-    if (!b.some(_ => deepeq(_, a[i]))) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-exports.arreq = arreq;
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.isMoveLine = exports.isFenLine = void 0;
-
-function isFenLine(_) {
-  return !isMoveLine(_);
-}
-
-exports.isFenLine = isFenLine;
-
-function isMoveLine(_) {
-  return _.parent !== undefined;
-}
-
-exports.isMoveLine = isMoveLine;
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.seqable = exports.seqMaybe = void 0;
-
-function seqMaybe(a, fn, ...args) {
-  return a ? fn(a, ...args) : undefined;
-}
-
-exports.seqMaybe = seqMaybe;
-
-const seqable = cb => (x, ...args) => typeof x === "undefined" ? undefined : cb(x, ...args);
-
-exports.seqable = seqable;
-"use strict";
-
-var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  Object.defineProperty(o, k2, {
-    enumerable: true,
-    get: function () {
-      return m[k];
-    }
-  });
-} : function (o, m, k, k2) {
-  if (k2 === undefined) k2 = k;
-  o[k2] = m[k];
-});
-
-var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
-  Object.defineProperty(o, "default", {
-    enumerable: true,
-    value: v
-  });
-} : function (o, v) {
-  o["default"] = v;
-});
-
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-
-  __setModuleDefault(result, mod);
-
-  return result;
-};
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.str = void 0;
-
-const dir = __importStar(require("./direction"));
-
-const p = __importStar(require("./pos"));
-
-const fa = p.dopKey;
-
-function str(a) {
-  if (dir.isRoute0(a)) {
-    return '<R0 ' + a.map(_ => fa(_)).join(' ') + '>';
-  } else if (dir.isRoute1(a)) {
-    return '<R1 ' + a.map(_ => str(_)).join(' ') + '>';
-  } else if (a instanceof Set) {
-    return '{' + [...a].map(_ => fa(_)).join(' ') + '}';
-  } else if (Array.isArray(a)) {
-    if (a.length === 0) {
-      return '[]';
-    } else if (Array.isArray(a[0])) {} else return '[' + a.map(_ => fa(_)).join(' ') + ']';
-  }
-
-  return 'unknown';
-}
-
-exports.str = str;

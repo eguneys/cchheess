@@ -1,18 +1,17 @@
 import * as ct from './types';
 import { Makes } from './makes';
 import * as f from './fen';
-import * as sanApi from './san';
-import * as hApi from './history';
-import * as db from './db';
+import * as san from './san';
+import * as h from './history';
 
 function fenLineFirstPly(parent: ct.FenLine, sanMeta: ct.SanMeta): ct.MoveLine | LineError {
-  let _h1 = hApi.first(parent, sanMeta)
+  let _h1 = h.first(parent, sanMeta)
 
   if (_h1) {
-    return db.lines.get({
+    return {
       parent, 
       history: _h1
-    });
+    };
   } else {
     return LineError.CantMakeMove;
   }
@@ -25,12 +24,12 @@ function moveLineNewPly({ parent, history }: ct.MoveLine, ply: number, sanMeta: 
   } else if (history.length > ply - 1) {
     return LineError.AlreadySet;
   } else {
-    let _h2 = hApi.add(history, sanMeta)
+    let _h2 = h.add(history, sanMeta)
     if (_h2) {
-      return db.lines.get({
+      return {
         parent,
         history: _h2
-      });
+      };
     } else {
       return LineError.CantMakeMove;
     }
@@ -69,7 +68,7 @@ function _ply(line: ct.Line, ply: number): ct.Fen | LineError {
 }
 
 function _aply(line: ct.Line, ply: number, move: string): ct.Line | LineError {
-  let _sanMeta = sanApi.str2meta(move)
+  let _sanMeta = san.str2meta(move)
 
   if (_sanMeta) {
     if (ply === 0) {

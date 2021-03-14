@@ -1,45 +1,59 @@
-import * as db from './db';
 import * as ct from './types';
 import * as ct2 from './types2';
-import * as m from './move';
-import * as b from './board';
-import * as u from './util';
-import * as p from './pos';
-import * as sz from './sanitizes';
 import * as disp from './displace';
+import * as v from './visual';
+import * as b from './board';
 
-export function moves({ board, piece, pos }: ct2.Actor): Array<ct.Move> {
-  let situationBefore = db.situations.get({
-    board,
-    turn: piece.color
-  });
+export function actors(board: ct.Board, 
+                       piece: ct.Piece,
+                       pos: Partial<ct.Pos>): Array<ct2.Actor> {
 
-  let displaces = disp.get(piece, pos);
-  let res: Array<ct.Move> = [];
-  for (let to of displaces) {
-    let b1 = board as ct.Board & sz.Sanitized,
-    b3 = b.move(b1, pos, to);
-    if (b3) {
-      let m = {
+  let res: Array<ct2.Actor> = [];
+
+  for (let [_pos, _piece] of board.entries()) {
+    if (_piece === piece && 
+      _pos[0] === (pos[0] || _pos[0]) && 
+      _pos[1] === (pos[1] || _pos[1]))
+
+      res.push({
+        pos: _pos,
         piece,
-        situationBefore,
-        after: b3,
-        orig: pos,
-        dest: to,
-        enpassant: false
-      };
-
-      res.push(m);
-    }
+        board
+      });
   }
 
-  // });
-  // let routes = db.routes.queryz(dirs, pos);
-  // let moves = db.moves.queryz(routes, board);
-  
-  // piece -> directions
-  // directions - pos -> routes
-  // routes - board -> moves
   return res;
+}
 
+export function moves({ board, piece, pos }: ct2.Actor): Array<ct.Move> {
+
+  return disp.displace(piece, pos).flatMap(route0 => {
+    let moves: Array<ct.Move> = [];
+
+    for (let i = 1; i < 2; i++) {
+      let to = route0[i]
+
+      if (board.get(to)) {
+      } else {
+
+        let after = b.move(board, pos, to)
+        if (after) {
+          let move = {
+            piece,
+            situationBefore: {
+              board,
+              turn: piece.color
+            },
+            after,
+            orig: pos,
+            dest: to,
+            enpassant: false
+          };
+
+          moves.push(move);
+        }
+      }
+    }
+    return moves;
+  });
 }
