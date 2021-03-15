@@ -104,7 +104,7 @@ export function jss(o: any, msg?: string): void {
 }
 
 export function cry(msg: string, o?: any) {
-  let oS = JSON.stringify(o);
+  let oS = (typeof o === 'string') ? o : JSON.stringify(o);
   console.log(`❌ ${msg} ` + oS);
 }
 

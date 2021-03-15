@@ -17,9 +17,9 @@ export default function() {
 
   it('displaces on 0 direction', () => {
     let t: Array<[dt.Displace0, ct.Direction, ct.Maybe<ct.Direction>]> =
-      [[-8, 1, undefined],
+      [[-7, 1, undefined],
        [-1, 1, undefined],
-       [8, 3, undefined],
+       [7, 3, undefined],
        [7, 1, 8],
        [1, 3, 4]];
 

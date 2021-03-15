@@ -3,6 +3,7 @@ import { deepeq } from './util2';
 import * as f from '../fen';
 import * as ct from '../types';
 import * as s from '../san';
+import * as side from '../side';
 import { poss } from '../db';
 
 export default function() {
@@ -11,6 +12,9 @@ export default function() {
     nac('Nf6', s.str2meta('Nf6'));
 
     nac('e4', s.str2meta('e4'));
+
+    qed('o-o', s.str2meta('o-o'), side.ShortCastle);
+    qed('o-o-o', s.str2meta('o-o-o'), side.LongCastle);
   });
 
 

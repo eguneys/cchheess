@@ -8,6 +8,7 @@ export type FenLine = Situation
 
 export interface MoveLine {
   parent: Line,
+  branchAt: Ply,
   history: History
 }
 
@@ -29,8 +30,8 @@ export interface Move {
   dest: Pos,
   capture?: Pos,
   promotion?: Role,
-  castle?: string
-  enpassant: boolean
+  castle?: CastleMeta,
+  enpassant?: Pos
 }
 
 export interface Situation {
@@ -57,6 +58,14 @@ export interface SanMeta {
   check?: boolean,
   mate?: boolean  
 }
+
+export type CastleMeta = {
+  king: File,
+  rook: File,
+  trip: 1 | -1
+}
+
+export type SanMetaOrCastles = SanMeta | CastleMeta
 
 export type Fen = string
 export type San = string

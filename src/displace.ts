@@ -11,14 +11,18 @@ let regulars = {
   'k': dt.DKing
 };
 
-const pawnMove2 = {
-  'w': sss.union(dt.DWPawn2, dt.DWPawn),
-  'b': sss.union(dt.DBPawn2, dt.DBPawn)
-}
-
-const pawnMove = {
+let pawns = {
   'w': dt.DWPawn,
-  'b': dt.DBPawn
+  'b': dt.DBPawn,
+};
+
+const regularProjection = {
+  'p': 1,
+  'n': 1,
+  'r': 8,
+  'b': 8,
+  'q': 8,
+  'k': 1
 }
 
 const pawn2MoveRanks = {
@@ -26,20 +30,38 @@ const pawn2MoveRanks = {
   'b': 7
 }
 
-function dType(piece: ct.Piece, pos: ct.Pos): dt.Displace2 {
-  if (piece.role === 'p') {
-    let p2Rank = pawn2MoveRanks[piece.color];
-
-    if (pos[1] === p2Rank) {
-      return pawnMove2[piece.color];
-    } else {
-      return pawnMove[piece.color];
-    }
-  } else {
-    return regulars[piece.role];
-  }
+const pawnPromoteRanks = {
+  'w': 8,
+  'b': 1
 }
 
-export function displace(piece: ct.Piece, pos: ct.Pos): dir.Route1<ct.Pos> {
-  return dir.rroute2(dType(piece, pos), pos);
+export function promotes(to: ct.Pos, piece: ct.Piece): boolean {
+  return piece.role === 'p' &&
+    to[1] === pawnPromoteRanks[piece.color];
+}
+
+export type Projection = number;
+
+export function route1(pos: ct.Pos, piece: ct.Piece): dir.Route1<ct.Pos> {
+  if (piece.role === 'p') {
+    return dir.rroute2(pawns[piece.color], pos);
+  }
+  return dir.rroute2(regulars[piece.role], pos);
+}
+
+export function projection(pos: ct.Pos, piece: ct.Piece): Projection {
+  if (piece.role === 'p') {
+    if (pawn2MoveRanks[piece.color] === pos[1]) {
+      return 2;
+    }
+  }
+  return regularProjection[piece.role];
+}
+
+export function displace(a: ct.Direction, b: ct.Direction): dt.Displace0 {
+  return (a - b) as dt.Displace0;
+}
+
+export function opposite(a: dt.Displace0): dt.Displace0 {
+  return a * -1 as dt.Displace0;
 }

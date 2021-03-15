@@ -1,9 +1,15 @@
 import * as ct from './types';
 import * as p from './pos';
 import * as r from './role';
+import * as side from './side';
 import { poss } from './db';
 
-export function str2meta(str: string): ct.Maybe<ct.SanMeta> {
+export function str2meta(str: string): ct.Maybe<ct.SanMetaOrCastles> {
+  if (str === "o-o") {
+    return side.ShortCastle;
+  } else if (str === "o-o-o") {
+    return side.LongCastle;
+  }
   if (!isSan2(str)) {
     let str2 = san2san2(str)
     if (str2) {

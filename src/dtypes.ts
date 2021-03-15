@@ -1,6 +1,6 @@
 import * as sss from './sss';
 
-export type Displace0 = -8 | -7 | -6 | -5 | -4 | -3 | -2 | -1 | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
+export type Displace0 = -7 | -6 | -5 | -4 | -3 | -2 | -1 | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
 export type Displace1 = [Displace0, Displace0]
 export type Displace2 = Set<Displace1>
 

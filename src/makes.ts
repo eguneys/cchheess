@@ -13,6 +13,10 @@ export class Makes<Key, Value> {
     this.data = new Map()
   }
 
+  get(key: Key): Value | undefined {
+    return this.data.get(key);
+  }
+
   setter0<ApiError, Arg1>(f: (_: Arg1) => Value | ApiError,
                           isApiError: (_: any) => _ is ApiError) {
     let data = this.data;
@@ -48,6 +52,25 @@ export class Makes<Key, Value> {
         }
       } else {
         return MakesError.NotSet
+      }
+    }
+  }
+
+  setter0n<ApiError>(f: (..._: any) => Value | ApiError,
+                     isApiError: (_: any) => _ is ApiError) {
+    let data = this.data;
+    return function(key: Key, ...args: any): MakesResult<ApiError, undefined> {
+      let _res = data.get(key);
+
+      if (_res) {
+        return MakesError.AlreadySet;
+      } else {
+        let fres = f(...args);
+        if (isApiError(fres)) {
+          return fres;
+        } else {
+          data.set(key, fres);
+        }
       }
     }
   }

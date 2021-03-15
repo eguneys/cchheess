@@ -1,15 +1,23 @@
 import * as ct from './types';
-import { Makes } from './makes';
 import * as f from './fen';
 import * as san from './san';
 import * as h from './history';
 
-function fenLineFirstPly(parent: ct.FenLine, sanMeta: ct.SanMeta): ct.MoveLine | LineError {
+export function lastPly(line: ct.Line): ct.Ply {
+  if (ct.isFenLine(line)) {
+    return 1;
+  } else {
+    return line.branchAt + line.history.length;
+  }
+}
+
+export function fenLineFirstPly(parent: ct.FenLine, sanMeta: ct.SanMetaOrCastles): ct.MoveLine | LineError {
   let _h1 = h.first(parent, sanMeta)
 
   if (_h1) {
     return {
-      parent, 
+      branchAt: 0,
+      parent,
       history: _h1
     };
   } else {
@@ -17,17 +25,18 @@ function fenLineFirstPly(parent: ct.FenLine, sanMeta: ct.SanMeta): ct.MoveLine |
   }
 }
 
-function moveLineNewPly({ parent, history }: ct.MoveLine, ply: number, sanMeta: ct.SanMeta): ct.MoveLine | LineError {
+export function moveLineNewPly(line: ct.MoveLine, ply: number, sanMeta: ct.SanMetaOrCastles): ct.MoveLine | LineError {
 
-  if (history.length < ply - 1) {
+  let { history } = line;
+  if (lastPly(line) < ply - 1) {
     return LineError.NoMoveFound;
-  } else if (history.length > ply - 1) {
+  } else if (lastPly(line) > ply - 1) {
     return LineError.AlreadySet;
   } else {
     let _h2 = h.add(history, sanMeta)
     if (_h2) {
       return {
-        parent,
+        ...line,
         history: _h2
       };
     } else {
@@ -37,6 +46,7 @@ function moveLineNewPly({ parent, history }: ct.MoveLine, ply: number, sanMeta: 
 }
 
 export enum LineError {
+  NoSuchLine = 'No Such Line',
   AlreadySet = 'Already Set',
   InvalidInput = 'Invalid Input',
   NoMoveFound = 'No Move Found',
@@ -47,7 +57,29 @@ export function isLineError(_: any): _ is LineError {
   return Object.values(LineError).includes(_);
 }
 
-function _fen(fen: string): ct.Line | LineError {
+export function line(pline: ct.Line, ply: number, move: string): ct.Line | LineError {
+  let _sanMeta = san.str2meta(move)
+
+  if (!_sanMeta) {
+    return LineError.InvalidInput;
+  }
+
+  if (ct.isFenLine(pline)) {
+  } else {
+    let history = h.branch(pline.history, ply, _sanMeta);
+
+    if (history) {
+      return {
+        parent: pline,
+        branchAt: ply - 1,
+        history
+      };
+    }
+  }
+  return LineError.NoMoveFound;
+}
+
+export function fen(fen: string): ct.Line | LineError {
   let sit = f.situation(fen)
   if (sit) {
     return sit;
@@ -56,7 +88,7 @@ function _fen(fen: string): ct.Line | LineError {
   }
 }
 
-function _ply(line: ct.Line, ply: number): ct.Fen | LineError {
+export function ply(line: ct.Line, ply: number): ct.Fen | LineError {
 
   if (ply === 0) {
     if (ct.isFenLine(line)) {
@@ -67,7 +99,7 @@ function _ply(line: ct.Line, ply: number): ct.Fen | LineError {
   return LineError.NoMoveFound
 }
 
-function _aply(line: ct.Line, ply: number, move: string): ct.Line | LineError {
+export function aply(line: ct.Line, ply: number, move: string): ct.Line | LineError {
   let _sanMeta = san.str2meta(move)
 
   if (_sanMeta) {
@@ -93,9 +125,3 @@ function _aply(line: ct.Line, ply: number, move: string): ct.Line | LineError {
     return LineError.InvalidInput
   }
 }
-
-let _makes = new Makes<string, ct.Line>()
-
-export const fen = _makes.setter0(_fen, isLineError);
-export const ply = _makes.getter1(_ply);
-export const aply = _makes.setter1(_aply, isLineError);

@@ -2,6 +2,7 @@ import { tMo, run } from './util';
 import makes from './makes';
 import core from './core';
 import line from './line';
+import linem from './linemakes';
 import actor from './actor';
 import routes from './routes';
 import direction from './direction';
@@ -18,7 +19,7 @@ export default function() {
   tMo(routes);
   tMo(fen);
 
-  tMo(line);
+  tMo.only(linem);
   tMo(move);
   tMo(actor);
   tMo(history);
