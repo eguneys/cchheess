@@ -1,6 +1,10 @@
-export function deepeq(a: any, b: any): boolean {
+export function deepeq(a: any, b: any, strict: boolean = false): boolean {
   if (Array.isArray(a) && Array.isArray(b)) {
-    return arreq(a, b);
+    if (strict) {
+      return sarreq(a, b);
+    } else {
+      return arreq(a, b);
+    }
   } else if (a instanceof Set && b instanceof Set) {
     return seteq(a, b);
   } else if (typeof a === 'object' && typeof b === 'object') {
@@ -33,6 +37,18 @@ export function seteq(a: Set<any>, b: Set<any>): boolean {
       }
     }
     if (!found) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function sarreq(a: Array<any>, b: Array<any>): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i in a) {
+    if (a[i] !== b[i]) {
       return false;
     }
   }

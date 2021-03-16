@@ -121,9 +121,21 @@ export function nac(msg: string, a: any): void {
   }
 }
 
+
+export function sqed(msg: string, a: any,
+                    b: any): boolean {
+  if (!deepeq(a, b, true)) {
+    cry(`${msg} got`, a);
+    return true;
+  }
+  return false;
+}
+
 export function qed(msg: string, a: any,
-                    b: any): void {
+                    b: any): boolean {
   if (!deepeq(a, b)) {
     cry(`${msg} got`, a);
+    return true;
   }
+  return false;
 }

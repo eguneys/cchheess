@@ -1,27 +1,5 @@
 export type Maybe<A> = A | undefined
 
-export type Line = 
-  | FenLine
-  | MoveLine
-
-export type FenLine = Situation
-
-export interface MoveLine {
-  parent: Line,
-  branchAt: Ply,
-  history: History
-}
-
-export function isFenLine(_: Line): _ is FenLine {
-  return !(isMoveLine(_));
-}
-
-export function isMoveLine(_: Line): _ is MoveLine {
-  return ((_ as MoveLine).parent !== undefined);
-}
-
-export type History = Array<Move>
-
 export interface Move {
   piece: Piece,
   situationBefore: Situation,

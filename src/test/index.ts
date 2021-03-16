@@ -1,14 +1,14 @@
 import { tMo, run } from './util';
 import makes from './makes';
 import core from './core';
-import line from './line';
-import linem from './linemakes';
 import actor from './actor';
 import routes from './routes';
 import direction from './direction';
-import history from './history';
 import fen from './fen';
 import move from './move';
+import line from './line';
+import node from './node';
+import path from './path';
 
 
 export default function() {
@@ -19,10 +19,12 @@ export default function() {
   tMo(routes);
   tMo(fen);
 
-  tMo.only(linem);
+  tMo(line);
   tMo(move);
   tMo(actor);
-  tMo(history);
+
+  tMo(node);
+  tMo(path);
 
   run();
 }
