@@ -19,7 +19,6 @@ export interface Branch<A> extends Node<Branch<A>> {
 export function climb<A, B>(trees: Array<Tree<A, B>>, path: Path): Tree<A, B> | undefined {
 
   let [id, ...rest] = path;
-
   let tree = trees.find(_ => _.id == id);
 
   if (tree && rest.length > 0) {
@@ -38,7 +37,6 @@ export function root<A, B>(id: NodeId, a: A): Root<A, B> {
 
 export function add<A, B>(id: NodeId, root: Root<A, B>, path: Path, data: B): Tree<A, B> | undefined {
   let branch = path.length === 0 ? root : climb(root.children, path);
-
   if (branch) {
     branch.children.push({
       id,

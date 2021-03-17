@@ -16,6 +16,11 @@ let pawns = {
   'b': dt.DBPawn,
 };
 
+let pawnCaptures = {
+  'w': dt.DWPawnC,
+  'b': dt.DBPawnC
+};
+
 const regularProjection = {
   'p': 1,
   'n': 1,
@@ -41,6 +46,13 @@ export function promotes(to: ct.Pos, piece: ct.Piece): boolean {
 }
 
 export type Projection = number;
+
+export function route1Captures(pos: ct.Pos, piece: ct.Piece): dir.Route1<ct.Pos> {
+  if (piece.role === 'p') {
+    return dir.rroute2(pawnCaptures[piece.color], pos);
+  }
+  return dir.rroute2(regulars[piece.role], pos);
+}
 
 export function route1(pos: ct.Pos, piece: ct.Piece): dir.Route1<ct.Pos> {
   if (piece.role === 'p') {

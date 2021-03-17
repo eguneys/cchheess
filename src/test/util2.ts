@@ -1,3 +1,15 @@
+export function pdeepeq(a: any, b: any) {
+  if (typeof a === 'object' && typeof b === 'object') {
+    for (let key in a) {
+      if (!pdeepeq(a[key], b[key])) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return a === b;
+}
+
 export function deepeq(a: any, b: any, strict: boolean = false): boolean {
   if (Array.isArray(a) && Array.isArray(b)) {
     if (strict) {

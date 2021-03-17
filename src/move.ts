@@ -1,6 +1,7 @@
 import * as ct from './types';
 import * as r from './role';
 import * as p from './pos';
+import * as pi from './piece';
 import * as side from './side';
 import { pieces } from './db';
 import { actors, moves, castles } from './actor';
@@ -30,6 +31,32 @@ export function situationAfter(move: ct.Move): ct.Situation {
     board: move.after,
     turn: r.otherColor(move.piece.color)
   }
+}
+
+export function uci(move: ct.Move): string {
+  return p.key(move.orig) + p.key(move.dest);
+}
+
+export function san(move: ct.Move): string {
+  if (move.castle === side.ShortCastle) {
+    return "O-O";
+  } else if (move.castle === side.LongCastle) {
+    return "O-O-O";
+  }
+  let pieceS = '',
+  fileS = '',
+  rankS = '',
+  captureS = '',
+  toS = p.key(move.dest),
+  promotionS = '',
+  checkS = '',
+  mateS = '';
+  
+  if (move.piece.role !== 'p') {
+    pieceS = pi.toFenStr(move.piece).toUpperCase();
+  }
+
+  return [pieceS, fileS, rankS, captureS, toS, promotionS, checkS, mateS].join('');
 }
 
 export function str(move: ct.Move): string {

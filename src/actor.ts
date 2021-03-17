@@ -87,7 +87,38 @@ export function moves({ board, piece, pos }: ct2.Actor): Array<ct.Move> {
 
   let projection = disp.projection(pos, piece);
 
-  return disp.route1(pos, piece).flatMap(route0 => {
+  let captures = disp.route1Captures(pos, piece).flatMap(route0 => {
+
+    let captures: Array<ct.Move> = [];
+    
+    for (let i = 1; i < projection + 1; i++) {
+      let to = route0[i]
+
+      if (!to) {
+        continue;
+      }
+
+      if (board.get(to)) {
+
+        let after = b.capture(board, pos, to);
+        if (after) {
+          captures.push({
+            piece,
+            situationBefore,
+            after,
+            orig: pos,
+            dest: to,
+            capture: to
+          });
+        }
+        break;
+      }
+
+    }
+    return captures;
+  });
+
+  let moves = disp.route1(pos, piece).flatMap(route0 => {
     let moves: Array<ct.Move> = [];
 
 
@@ -98,8 +129,7 @@ export function moves({ board, piece, pos }: ct2.Actor): Array<ct.Move> {
         continue;
       }
 
-      if (board.get(to)) {
-      } else {
+      if (!board.get(to)) {
         if (disp.promotes(to, piece)) {
           r.promotables.forEach(role => {
             let b1 = b.move(board, pos, to),
@@ -132,4 +162,7 @@ export function moves({ board, piece, pos }: ct2.Actor): Array<ct.Move> {
     }
     return moves;
   });
+
+
+  return [...moves, ...captures];
 }

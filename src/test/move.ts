@@ -32,6 +32,8 @@ export default function () {
     qed('1. e4', oneE4.piece, wP);
 
     qed("b's turn", m.situationAfter(oneE4).turn, "b");
+
+    qed('move2san', m.san(oneE4), 'e4');
     
   });
 
@@ -48,6 +50,8 @@ export default function () {
 
     qed('o-o king on g1', short.after.get(g1), wK);
     qed('o-o rook on f1', short.after.get(f1), wR);
+
+    qed('o-o san', m.san(short), 'O-O');
 
   });
   

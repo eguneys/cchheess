@@ -4,10 +4,13 @@ import * as r from './role';
 import * as side from './side';
 import { poss } from './db';
 
+const shortCastles = ['o-o', 'O-O', '0-0'],
+longCastles = ['o-o-o', 'O-O-O', '0-0-0'];
+
 export function str2meta(str: string): ct.Maybe<ct.SanMetaOrCastles> {
-  if (str === "o-o") {
+  if (shortCastles.includes(str)) {
     return side.ShortCastle;
-  } else if (str === "o-o-o") {
+  } else if (longCastles.includes(str)) {
     return side.LongCastle;
   }
   if (!isSan2(str)) {

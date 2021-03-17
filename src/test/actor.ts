@@ -19,6 +19,8 @@ export default function () {
   let a6 = poss.nget(1, 6) as ct.Pos;
   let a5 = poss.nget(1, 5) as ct.Pos;
   let f7 = poss.nget(6, 7) as ct.Pos;
+  let d3 = poss.nget(4, 3) as ct.Pos;
+  let c4 = poss.nget(3, 4) as ct.Pos;
   let wP = pieces.nget('P','P') as ct.Piece;
   let bP = pieces.nget('p','p') as ct.Piece;
   let bQ = pieces.nget('q','q') as ct.Piece;
@@ -135,6 +137,27 @@ r    rk
   kr   r
 `);
     
+  });
+
+  it.only('captures', () => {
+    
+    let captureSit = f.situation('8/1r2k3/8/8/2p5/1R1P4/8/4K3 w - - 0 1') as ct.Situation;
+
+    let { board: cBoard } = captureSit;
+
+    let res = a.moves({ board: cBoard,
+                        piece: wP,
+                        pos: d3 });
+
+    qed('d4 dxc4', res.map(m.str),
+        ['d3d4', 'd3c4']);
+
+    qed('cxb3 cxd3 c3', a.moves({
+      board: cBoard,
+      piece: bP,
+      pos: c4
+    }).map(m.str), ['c4c3','c4b3','c4d3']);
+
   });
   
 }

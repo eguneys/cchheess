@@ -18,13 +18,12 @@ export default function() {
   tMo(core);
   tMo(routes);
   tMo(fen);
-
-  tMo(line);
-  tMo(move);
+  tMo.only(move);
   tMo(actor);
 
   tMo(node);
   tMo(path);
+  tMo(line);
 
   run();
 }

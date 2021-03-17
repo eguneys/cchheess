@@ -11,17 +11,23 @@ export class MakesNode<A, B> {
     this.root = n.root(line, a);
   }
 
+  zero(): A | MakesError {
+    return this.root.data;
+  }
+
   get(line: string, ply: ct.Ply): B | MakesError {
     let path = this.makes.line(line, ply);
-
     if (isMakesError(path)) {
       return path;
     } else {
-      let res = n.climb(this.root.children, path.reverse());
+      if (path.length === 0) {
+        return MakesError.TryZero
+      }
+      let res = n.climb(this.root.children, path.slice(0).reverse());
       if (res) {
         return res.data;
       } else {
-        return MakesError.Internal;
+        return MakesError.NoPreceding;
       }
     }
   }
@@ -52,6 +58,7 @@ export class MakesNode<A, B> {
 
 
 export enum MakesError {
+  TryZero = 'Try Zero',
   Internal = 'Internal',
   NoPreceding = 'No Preceding',
   NoLineToBase = 'No Line to Base'

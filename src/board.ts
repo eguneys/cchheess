@@ -7,6 +7,7 @@ import * as r from './role';
 import * as u from './util';
 import { poss } from './db';
 
+export const capture = u.seqable(_capture);
 export const move = u.seqable(_move);
 export const promote = u.seqable(_promote);
 export const castle = u.seqable(_castle);
@@ -71,6 +72,17 @@ function _castle(board: ct.Board,
     return b2;
   }
   
+}
+
+function _capture(board: ct.Board, pos: ct.Pos, to: ct.Pos): ct.Maybe<ct.Board> {
+  let p = board.get(pos)
+  if (p) {
+    let b2 = new Map([...board])
+    b2.delete(pos);
+    b2.set(to, p);
+
+    return b2;
+  }  
 }
 
 function _move(board: ct.Board, pos: ct.Pos, to: ct.Pos): ct.Maybe<ct.Board> {

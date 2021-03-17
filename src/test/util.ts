@@ -1,4 +1,4 @@
-import { deepeq } from './util2';
+import { pdeepeq, deepeq } from './util2';
 
 interface Test {
   msg: string,
@@ -81,7 +81,7 @@ export function runtests() {
   console.log(`done ${testOnly.length} / ${failed.length} failed`);
 }
 
-export function it(msg: string, fn: () => void | string | undefined): void {
+export function it(msg: string, fn: () => void | string | undefined = () => {}): void {
   let test: Test = {
     msg,
     fn
@@ -134,6 +134,15 @@ export function sqed(msg: string, a: any,
 export function qed(msg: string, a: any,
                     b: any): boolean {
   if (!deepeq(a, b)) {
+    cry(`${msg} got`, a);
+    return true;
+  }
+  return false;
+}
+
+export function pqed(msg: string, a: any,
+                     b: any): boolean {
+  if (!pdeepeq(b, a)) {
     cry(`${msg} got`, a);
     return true;
   }
